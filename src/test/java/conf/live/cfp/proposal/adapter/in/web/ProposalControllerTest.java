@@ -39,7 +39,8 @@ class ProposalControllerTest {
 								{
 								  "title": "Title",
 								  "description": "Description",
-								  "speakerId": "speaker-1"
+								  "speakerId": "speaker-1",
+								  "eventId": "event-1"
 								}
 								"""))
 				.andExpect(status().isCreated())
@@ -48,9 +49,10 @@ class ProposalControllerTest {
 				.andExpect(jsonPath("$.title").value("Title"))
 				.andExpect(jsonPath("$.description").value("Description"))
 				.andExpect(jsonPath("$.speakerId").value("speaker-1"))
-				.andExpect(jsonPath("$.status").value("DRAFT"));
+				.andExpect(jsonPath("$.status").value("DRAFT"))
+				.andExpect(jsonPath("$.eventId").value("event-1"));
 
-		verify(submitProposalUseCase).submit(eq(new SubmitProposalCommand("Title", "Description", "speaker-1", null)));
+		verify(submitProposalUseCase).submit(eq(new SubmitProposalCommand("Title", "Description", "speaker-1", "event-1")));
 	}
 
 	@Test
