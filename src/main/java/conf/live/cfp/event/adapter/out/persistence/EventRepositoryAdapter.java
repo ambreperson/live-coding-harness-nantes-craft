@@ -4,8 +4,8 @@ import conf.live.cfp.event.domain.model.Event;
 import conf.live.cfp.event.domain.port.out.EventRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Output adapter implementing the {@link EventRepository} port on top of Spring Data JPA.
