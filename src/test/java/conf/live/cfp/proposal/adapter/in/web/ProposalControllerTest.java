@@ -1,7 +1,9 @@
 package conf.live.cfp.proposal.adapter.in.web;
 
+import conf.live.cfp.event.domain.model.EventNotFoundException;
 import conf.live.cfp.proposal.domain.model.InvalidProposalException;
 import conf.live.cfp.proposal.domain.model.Proposal;
+import conf.live.cfp.proposal.domain.model.ProposalStatus;
 import conf.live.cfp.proposal.domain.port.in.SubmitProposalCommand;
 import conf.live.cfp.proposal.domain.port.in.SubmitProposalUseCase;
 import org.junit.jupiter.api.Test;
@@ -30,7 +32,7 @@ class ProposalControllerTest {
 
 	@Test
 	void should_return_201_with_the_created_proposal_when_the_request_is_valid() throws Exception {
-		Proposal created = Proposal.rehydrate("proposal-1", "Title", "Description", "speaker-1", conf.live.cfp.proposal.domain.model.ProposalStatus.DRAFT, "event-1");
+		Proposal created = Proposal.rehydrate("proposal-1", "Title", "Description", "speaker-1", ProposalStatus.DRAFT, "event-1");
 		when(submitProposalUseCase.submit(any())).thenReturn(created);
 
 		mockMvc.perform(post("/api/proposals")
@@ -39,7 +41,8 @@ class ProposalControllerTest {
 								{
 								  "title": "Title",
 								  "description": "Description",
-								  "speakerId": "speaker-1"
+								  "speakerId": "speaker-1",
+								  "eventId": "event-1"
 								}
 								"""))
 				.andExpect(status().isCreated())
@@ -48,9 +51,10 @@ class ProposalControllerTest {
 				.andExpect(jsonPath("$.title").value("Title"))
 				.andExpect(jsonPath("$.description").value("Description"))
 				.andExpect(jsonPath("$.speakerId").value("speaker-1"))
-				.andExpect(jsonPath("$.status").value("DRAFT"));
+				.andExpect(jsonPath("$.status").value("DRAFT"))
+				.andExpect(jsonPath("$.eventId").value("event-1"));
 
-		verify(submitProposalUseCase).submit(eq(new SubmitProposalCommand("Title", "Description", "speaker-1", null)));
+		verify(submitProposalUseCase).submit(eq(new SubmitProposalCommand("Title", "Description", "speaker-1", "event-1")));
 	}
 
 	@Test
@@ -68,6 +72,21 @@ class ProposalControllerTest {
 	}
 
 	@Test
+	void should_return_400_when_the_event_id_is_blank() throws Exception {
+		mockMvc.perform(post("/api/proposals")
+						.contentType("application/json")
+						.content("""
+								{
+								  "title": "Title",
+								  "description": "Description",
+								  "speakerId": "speaker-1",
+								  "eventId": ""
+								}
+								"""))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void should_return_400_with_the_domain_message_when_the_use_case_rejects_the_proposal() throws Exception {
 		when(submitProposalUseCase.submit(any())).thenThrow(new InvalidProposalException("Proposal speaker id must not be blank"));
 
@@ -77,10 +96,29 @@ class ProposalControllerTest {
 								{
 								  "title": "Title",
 								  "description": "Description",
-								  "speakerId": "speaker-1"
+								  "speakerId": "speaker-1",
+								  "eventId": "event-1"
 								}
 								"""))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.detail").value("Proposal speaker id must not be blank"));
+	}
+
+	@Test
+	void should_return_400_with_the_domain_message_when_the_referenced_event_does_not_exist() throws Exception {
+		when(submitProposalUseCase.submit(any())).thenThrow(new EventNotFoundException("Event not found: missing-event"));
+
+		mockMvc.perform(post("/api/proposals")
+						.contentType("application/json")
+						.content("""
+								{
+								  "title": "Title",
+								  "description": "Description",
+								  "speakerId": "speaker-1",
+								  "eventId": "missing-event"
+								}
+								"""))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.detail").value("Event not found: missing-event"));
 	}
 }

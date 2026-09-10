@@ -1,5 +1,6 @@
 package conf.live.cfp.proposal.adapter.in.web;
 
+import conf.live.cfp.event.domain.model.EventNotFoundException;
 import conf.live.cfp.proposal.domain.model.InvalidProposalException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -15,6 +16,11 @@ public class ProposalExceptionHandler {
 
 	@ExceptionHandler(InvalidProposalException.class)
 	public ProblemDetail handleInvalidProposal(InvalidProposalException exception) {
+		return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+	}
+
+	@ExceptionHandler(EventNotFoundException.class)
+	public ProblemDetail handleEventNotFound(EventNotFoundException exception) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
 	}
 }
