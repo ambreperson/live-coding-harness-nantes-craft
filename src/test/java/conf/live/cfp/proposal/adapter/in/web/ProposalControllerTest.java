@@ -3,6 +3,7 @@ package conf.live.cfp.proposal.adapter.in.web;
 import conf.live.cfp.event.domain.model.EventNotFoundException;
 import conf.live.cfp.proposal.domain.model.InvalidProposalException;
 import conf.live.cfp.proposal.domain.model.Proposal;
+import conf.live.cfp.proposal.domain.model.ProposalStatus;
 import conf.live.cfp.proposal.domain.port.in.SubmitProposalCommand;
 import conf.live.cfp.proposal.domain.port.in.SubmitProposalUseCase;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ class ProposalControllerTest {
 
 	@Test
 	void should_return_201_with_the_created_proposal_when_the_request_is_valid() throws Exception {
-		Proposal created = Proposal.rehydrate("proposal-1", "Title", "Description", "speaker-1", conf.live.cfp.proposal.domain.model.ProposalStatus.DRAFT, "event-1");
+		Proposal created = Proposal.rehydrate("proposal-1", "Title", "Description", "speaker-1", ProposalStatus.DRAFT, "event-1");
 		when(submitProposalUseCase.submit(any())).thenReturn(created);
 
 		mockMvc.perform(post("/api/proposals")
