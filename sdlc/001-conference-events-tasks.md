@@ -55,17 +55,17 @@ Source design: sdlc/001-conference-events-design.md
 ### Track A — Event : application
 *(parallel avec Track B, Track C, Track D, Track E, Track F)*
 
-- [ ] RED : écrire `CreateEventServiceTest#should_create_an_event_built_from_the_command_and_persist_it` dans `src/test/java/conf/live/cfp/event/application/CreateEventServiceTest.java` (`@ExtendWith(MockitoExtension.class)`, `@Mock EventRepository eventRepository`), vérifiant que `service.create(new CreateEventCommand("My Conf"))` retourne un `Event` avec `name()` égal à `"My Conf"` et que `eventRepository.save(...)` est appelé avec cet événement (via `ArgumentCaptor`), sur le modèle de `SubmitProposalServiceTest`.
-- [ ] Lancer `./mvnw test -Dtest=CreateEventServiceTest` — confirmer l'échec pour compilation (`CreateEventService` n'existe pas).
-- [ ] GREEN : créer `CreateEventService` dans `src/main/java/conf/live/cfp/event/application/CreateEventService.java` (`@Service`, implémente `CreateEventUseCase`, construit `Event.create(command.name())` et délègue à `eventRepository.save(...)`).
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] RED : ajouter `CreateEventServiceTest#should_return_the_event_persisted_by_the_repository`, mockant `eventRepository.save(any())` pour retourner un événement `rehydrate`d et vérifiant que `service.create(...)` retourne bien cette instance.
-- [ ] Lancer le test — confirmer qu'il passe déjà (sinon corriger `CreateEventService` pour retourner la valeur de `save`).
-- [ ] RED : écrire `ListEventsServiceTest#should_return_all_events_from_the_repository` dans `src/test/java/conf/live/cfp/event/application/ListEventsServiceTest.java`, mockant `eventRepository.findAll()` pour retourner une liste de deux `Event` et vérifiant que `service.listAll()` retourne cette même liste.
-- [ ] Lancer `./mvnw test -Dtest=ListEventsServiceTest` — confirmer l'échec pour compilation (`ListEventsService` n'existe pas).
-- [ ] GREEN : créer `ListEventsService` dans `src/main/java/conf/live/cfp/event/application/ListEventsService.java` (`@Service`, implémente `ListEventsUseCase`, délègue à `eventRepository.findAll()`).
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] REFACTOR : relire les deux services et leurs tests, relancer `./mvnw test -Dtest=CreateEventServiceTest,ListEventsServiceTest`.
+- [x] RED : écrire `CreateEventServiceTest#should_create_an_event_built_from_the_command_and_persist_it` dans `src/test/java/conf/live/cfp/event/application/CreateEventServiceTest.java` (`@ExtendWith(MockitoExtension.class)`, `@Mock EventRepository eventRepository`), vérifiant que `service.create(new CreateEventCommand("My Conf"))` retourne un `Event` avec `name()` égal à `"My Conf"` et que `eventRepository.save(...)` est appelé avec cet événement (via `ArgumentCaptor`), sur le modèle de `SubmitProposalServiceTest`.
+- [x] Lancer `./mvnw test -Dtest=CreateEventServiceTest` — confirmer l'échec pour compilation (`CreateEventService` n'existe pas).
+- [x] GREEN : créer `CreateEventService` dans `src/main/java/conf/live/cfp/event/application/CreateEventService.java` (`@Service`, implémente `CreateEventUseCase`, construit `Event.create(command.name())` et délègue à `eventRepository.save(...)`).
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] RED : ajouter `CreateEventServiceTest#should_return_the_event_persisted_by_the_repository`, mockant `eventRepository.save(any())` pour retourner un événement `rehydrate`d et vérifiant que `service.create(...)` retourne bien cette instance.
+- [x] Lancer le test — confirmer qu'il passe déjà (sinon corriger `CreateEventService` pour retourner la valeur de `save`).
+- [x] RED : écrire `ListEventsServiceTest#should_return_all_events_from_the_repository` dans `src/test/java/conf/live/cfp/event/application/ListEventsServiceTest.java`, mockant `eventRepository.findAll()` pour retourner une liste de deux `Event` et vérifiant que `service.listAll()` retourne cette même liste.
+- [x] Lancer `./mvnw test -Dtest=ListEventsServiceTest` — confirmer l'échec pour compilation (`ListEventsService` n'existe pas).
+- [x] GREEN : créer `ListEventsService` dans `src/main/java/conf/live/cfp/event/application/ListEventsService.java` (`@Service`, implémente `ListEventsUseCase`, délègue à `eventRepository.findAll()`).
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] REFACTOR : relire les deux services et leurs tests, relancer `./mvnw test -Dtest=CreateEventServiceTest,ListEventsServiceTest`.
 
 ### Track B — Event : adaptateur web
 *(parallel avec Track A, Track C, Track D, Track E, Track F)*
