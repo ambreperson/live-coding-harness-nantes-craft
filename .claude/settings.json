@@ -2,8 +2,7 @@
   "permissions": {
     "deny": [
       "Read(./live-coding.md)",
-      "Edit(./live-coding.md)",
-      "Write(./live-coding.md)"
+      "Edit(./live-coding.md)"
     ]
   },
   "hooks": {
