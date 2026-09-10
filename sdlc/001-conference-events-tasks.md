@@ -70,44 +70,44 @@ Source design: sdlc/001-conference-events-design.md
 ### Track B — Event : adaptateur web
 *(parallel avec Track A, Track C, Track D, Track E, Track F)*
 
-- [ ] RED : écrire `EventControllerTest#should_return_201_with_the_created_event_when_the_request_is_valid` dans `src/test/java/conf/live/cfp/event/adapter/in/web/EventControllerTest.java` (`@WebMvcTest(EventController.class)`, `@MockitoBean CreateEventUseCase createEventUseCase`), postant `{"name": "My Conf"}` sur `/api/events` et vérifiant `status().isCreated()`, l'en-tête `Location`, et le JSON `$.id`/`$.name`, sur le modèle de `ProposalControllerTest`.
-- [ ] Lancer `./mvnw test -Dtest=EventControllerTest#should_return_201_with_the_created_event_when_the_request_is_valid` — confirmer l'échec pour compilation.
-- [ ] GREEN : créer `CreateEventRequest` (`record CreateEventRequest(@NotBlank(message = "name must not be blank") String name)`) dans `src/main/java/conf/live/cfp/event/adapter/in/web/dto/CreateEventRequest.java`, `EventResponse` (`record EventResponse(String id, String name)` + `from(Event)`) dans `.../dto/EventResponse.java`, et `EventController` dans `src/main/java/conf/live/cfp/event/adapter/in/web/EventController.java` (`@RestController`, `@RequestMapping("/api/events")`, `POST` mappé sur `createEventUseCase.create(...)`, retourne `201` avec `Location: /api/events/{id}`).
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] RED : ajouter `EventControllerTest#should_return_400_when_the_name_is_blank`, postant `{"name": ""}` et vérifiant `status().isBadRequest()`.
-- [ ] Lancer le test — confirmer qu'il passe déjà (validation `@Valid`/`@NotBlank`) ; sinon ajouter `@Valid` sur le paramètre du contrôleur.
-- [ ] RED : ajouter `EventControllerTest#should_return_400_with_the_domain_message_when_the_use_case_rejects_the_event`, mockant `createEventUseCase.create(any())` pour lever `InvalidEventException("Event name must not be blank")`, et vérifiant `status().isBadRequest()` et `$.detail`.
-- [ ] Lancer le test — confirmer l'échec (pas de gestion de `InvalidEventException` → 500).
-- [ ] GREEN : créer `EventExceptionHandler` dans `src/main/java/conf/live/cfp/event/adapter/in/web/EventExceptionHandler.java` (`@RestControllerAdvice(assignableTypes = EventController.class)`, gère `InvalidEventException` → `ProblemDetail` 400), sur le modèle de `ProposalExceptionHandler`.
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] RED : ajouter `EventControllerTest#should_return_200_with_all_events`, mockant `listEventsUseCase.listAll()` (ajouter `@MockitoBean ListEventsUseCase listEventsUseCase`) pour retourner deux événements, appelant `GET /api/events`, et vérifiant `status().isOk()` et le contenu JSON des deux éléments.
-- [ ] Lancer le test — confirmer l'échec pour compilation (pas de méthode `GET` sur `EventController`).
-- [ ] GREEN : ajouter la méthode `@GetMapping` sur `EventController`, déléguant à `listEventsUseCase.listAll()` et mappant chaque `Event` en `EventResponse`.
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] REFACTOR : relire `EventController`/DTOs/`EventExceptionHandler` et leur test, relancer `./mvnw test -Dtest=EventControllerTest`.
+- [x] RED : écrire `EventControllerTest#should_return_201_with_the_created_event_when_the_request_is_valid` dans `src/test/java/conf/live/cfp/event/adapter/in/web/EventControllerTest.java` (`@WebMvcTest(EventController.class)`, `@MockitoBean CreateEventUseCase createEventUseCase`), postant `{"name": "My Conf"}` sur `/api/events` et vérifiant `status().isCreated()`, l'en-tête `Location`, et le JSON `$.id`/`$.name`, sur le modèle de `ProposalControllerTest`.
+- [x] Lancer `./mvnw test -Dtest=EventControllerTest#should_return_201_with_the_created_event_when_the_request_is_valid` — confirmer l'échec pour compilation.
+- [x] GREEN : créer `CreateEventRequest` (`record CreateEventRequest(@NotBlank(message = "name must not be blank") String name)`) dans `src/main/java/conf/live/cfp/event/adapter/in/web/dto/CreateEventRequest.java`, `EventResponse` (`record EventResponse(String id, String name)` + `from(Event)`) dans `.../dto/EventResponse.java`, et `EventController` dans `src/main/java/conf/live/cfp/event/adapter/in/web/EventController.java` (`@RestController`, `@RequestMapping("/api/events")`, `POST` mappé sur `createEventUseCase.create(...)`, retourne `201` avec `Location: /api/events/{id}`).
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] RED : ajouter `EventControllerTest#should_return_400_when_the_name_is_blank`, postant `{"name": ""}` et vérifiant `status().isBadRequest()`.
+- [x] Lancer le test — confirmer qu'il passe déjà (validation `@Valid`/`@NotBlank`) ; sinon ajouter `@Valid` sur le paramètre du contrôleur.
+- [x] RED : ajouter `EventControllerTest#should_return_400_with_the_domain_message_when_the_use_case_rejects_the_event`, mockant `createEventUseCase.create(any())` pour lever `InvalidEventException("Event name must not be blank")`, et vérifiant `status().isBadRequest()` et `$.detail`.
+- [x] Lancer le test — confirmer l'échec (pas de gestion de `InvalidEventException` → 500).
+- [x] GREEN : créer `EventExceptionHandler` dans `src/main/java/conf/live/cfp/event/adapter/in/web/EventExceptionHandler.java` (`@RestControllerAdvice(assignableTypes = EventController.class)`, gère `InvalidEventException` → `ProblemDetail` 400), sur le modèle de `ProposalExceptionHandler`.
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] RED : ajouter `EventControllerTest#should_return_200_with_all_events`, mockant `listEventsUseCase.listAll()` (ajouter `@MockitoBean ListEventsUseCase listEventsUseCase`) pour retourner deux événements, appelant `GET /api/events`, et vérifiant `status().isOk()` et le contenu JSON des deux éléments.
+- [x] Lancer le test — confirmer l'échec pour compilation (pas de méthode `GET` sur `EventController`). *(Observé en 405, pas en erreur de compilation, puisque le fichier compilait déjà — type d'échec correct néanmoins.)*
+- [x] GREEN : ajouter la méthode `@GetMapping` sur `EventController`, déléguant à `listEventsUseCase.listAll()` et mappant chaque `Event` en `EventResponse`.
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] REFACTOR : relire `EventController`/DTOs/`EventExceptionHandler` et leur test, relancer `./mvnw test -Dtest=EventControllerTest`.
 
 ### Track C — Event : adaptateur de persistance
 *(parallel avec Track A, Track B, Track D, Track E, Track F)*
 
-- [ ] RED : écrire `EventRepositoryAdapterTest#should_map_the_event_to_an_entity_and_persist_it` dans `src/test/java/conf/live/cfp/event/adapter/out/persistence/EventRepositoryAdapterTest.java` (`@ExtendWith(MockitoExtension.class)`, `@Mock EventJpaRepository eventJpaRepository`), vérifiant que `adapter.save(event)` construit et persiste une `EventEntity` avec les mêmes `id`/`name`, sur le modèle de `ProposalRepositoryAdapterTest`.
-- [ ] Lancer `./mvnw test -Dtest=EventRepositoryAdapterTest#should_map_the_event_to_an_entity_and_persist_it` — confirmer l'échec pour compilation.
-- [ ] GREEN : créer `EventEntity` (`@Entity @Table(name = "event")`, champs `id`/`name`, constructeur protégé + constructeur complet, getters) dans `src/main/java/conf/live/cfp/event/adapter/out/persistence/EventEntity.java`, `EventJpaRepository extends JpaRepository<EventEntity, String>` dans `.../EventJpaRepository.java`, et `EventRepositoryAdapter implements EventRepository` (`@Repository`, méthodes `toEntity`/`toDomain` privées statiques) dans `.../EventRepositoryAdapter.java` avec `save(...)`.
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] RED : ajouter `EventRepositoryAdapterTest#should_map_the_persisted_entity_back_to_a_domain_event`, mockant `eventJpaRepository.save(any())` pour retourner une `EventEntity` donnée et vérifiant que `adapter.save(event)` retourne l'`Event` équivalent.
-- [ ] Lancer le test — confirmer qu'il passe déjà (sinon corriger `toDomain`).
-- [ ] RED : ajouter `EventRepositoryAdapterTest#should_return_the_event_when_found_by_id`, mockant `eventJpaRepository.findById("event-1")` pour retourner `Optional.of(entity)` et vérifiant que `adapter.findById("event-1")` retourne `Optional.of(event)`.
-- [ ] Lancer le test — confirmer l'échec pour compilation (`findById` absent de l'adaptateur).
-- [ ] GREEN : implémenter `findById` dans `EventRepositoryAdapter` (délègue à `eventJpaRepository.findById(id).map(EventRepositoryAdapter::toDomain)`).
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] RED : ajouter `EventRepositoryAdapterTest#should_return_empty_when_no_event_matches_the_id`, mockant `eventJpaRepository.findById("missing")` pour retourner `Optional.empty()` et vérifiant que `adapter.findById("missing")` retourne `Optional.empty()`.
-- [ ] Lancer le test — confirmer qu'il passe déjà (sinon corriger le mapping `Optional`).
-- [ ] RED : ajouter `EventRepositoryAdapterTest#should_return_all_events`, mockant `eventJpaRepository.findAll()` pour retourner une liste de deux `EventEntity` et vérifiant que `adapter.findAll()` retourne la liste des `Event` correspondants.
-- [ ] Lancer le test — confirmer l'échec pour compilation (`findAll` absent de l'adaptateur).
-- [ ] GREEN : implémenter `findAll` dans `EventRepositoryAdapter` (`eventJpaRepository.findAll().stream().map(EventRepositoryAdapter::toDomain).toList()`).
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] RED : écrire `EventRepositoryAdapterPersistenceTest#should_persist_an_event_and_make_it_retrievable` dans `src/test/java/conf/live/cfp/event/adapter/out/persistence/EventRepositoryAdapterPersistenceTest.java` (`@DataJpaTest`, `@Import(EventRepositoryAdapter.class)`), vérifiant qu'un `Event` sauvegardé est bien retrouvable via `eventJpaRepository.findById(...)`, sur le modèle de `ProposalRepositoryAdapterPersistenceTest`.
-- [ ] Lancer `./mvnw test -Dtest=EventRepositoryAdapterPersistenceTest` — confirmer l'échec (probable erreur de schéma si le mapping JPA est incorrect) ou son succès si Track C précédent est déjà correct ; corriger `EventEntity`/l'adaptateur si besoin jusqu'à obtenir le vert.
-- [ ] REFACTOR : relire `EventEntity`/`EventJpaRepository`/`EventRepositoryAdapter` et leurs tests, relancer `./mvnw test -Dtest=EventRepositoryAdapterTest,EventRepositoryAdapterPersistenceTest`.
+- [x] RED : écrire `EventRepositoryAdapterTest#should_map_the_event_to_an_entity_and_persist_it` dans `src/test/java/conf/live/cfp/event/adapter/out/persistence/EventRepositoryAdapterTest.java` (`@ExtendWith(MockitoExtension.class)`, `@Mock EventJpaRepository eventJpaRepository`), vérifiant que `adapter.save(event)` construit et persiste une `EventEntity` avec les mêmes `id`/`name`, sur le modèle de `ProposalRepositoryAdapterTest`.
+- [x] Lancer `./mvnw test -Dtest=EventRepositoryAdapterTest#should_map_the_event_to_an_entity_and_persist_it` — confirmer l'échec pour compilation.
+- [x] GREEN : créer `EventEntity` (`@Entity @Table(name = "event")`, champs `id`/`name`, constructeur protégé + constructeur complet, getters) dans `src/main/java/conf/live/cfp/event/adapter/out/persistence/EventEntity.java`, `EventJpaRepository extends JpaRepository<EventEntity, String>` dans `.../EventJpaRepository.java`, et `EventRepositoryAdapter implements EventRepository` (`@Repository`, méthodes `toEntity`/`toDomain` privées statiques) dans `.../EventRepositoryAdapter.java` avec `save(...)`. *(Note : `EventRepository` déclarant déjà `findById`/`findAll` comme méthodes abstraites, il a fallu les implémenter dès cette étape pour compiler — les étapes RED prévues plus bas pour `findById`/`findAll` n'ont donc jamais échoué à la compilation, exactement le filet de repli anticipé par ce document.)*
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] RED : ajouter `EventRepositoryAdapterTest#should_map_the_persisted_entity_back_to_a_domain_event`, mockant `eventJpaRepository.save(any())` pour retourner une `EventEntity` donnée et vérifiant que `adapter.save(event)` retourne l'`Event` équivalent.
+- [x] Lancer le test — confirmer qu'il passe déjà (sinon corriger `toDomain`).
+- [x] RED : ajouter `EventRepositoryAdapterTest#should_return_the_event_when_found_by_id`, mockant `eventJpaRepository.findById("event-1")` pour retourner `Optional.of(entity)` et vérifiant que `adapter.findById("event-1")` retourne `Optional.of(event)`.
+- [x] Lancer le test — confirmer l'échec pour compilation (`findById` absent de l'adaptateur). *(N/A, voir note ci-dessus : passait déjà.)*
+- [x] GREEN : implémenter `findById` dans `EventRepositoryAdapter` (délègue à `eventJpaRepository.findById(id).map(EventRepositoryAdapter::toDomain)`).
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] RED : ajouter `EventRepositoryAdapterTest#should_return_empty_when_no_event_matches_the_id`, mockant `eventJpaRepository.findById("missing")` pour retourner `Optional.empty()` et vérifiant que `adapter.findById("missing")` retourne `Optional.empty()`.
+- [x] Lancer le test — confirmer qu'il passe déjà (sinon corriger le mapping `Optional`).
+- [x] RED : ajouter `EventRepositoryAdapterTest#should_return_all_events`, mockant `eventJpaRepository.findAll()` pour retourner une liste de deux `EventEntity` et vérifiant que `adapter.findAll()` retourne la liste des `Event` correspondants.
+- [x] Lancer le test — confirmer l'échec pour compilation (`findAll` absent de l'adaptateur). *(N/A, voir note ci-dessus : passait déjà.)*
+- [x] GREEN : implémenter `findAll` dans `EventRepositoryAdapter` (`eventJpaRepository.findAll().stream().map(EventRepositoryAdapter::toDomain).toList()`).
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] RED : écrire `EventRepositoryAdapterPersistenceTest#should_persist_an_event_and_make_it_retrievable` dans `src/test/java/conf/live/cfp/event/adapter/out/persistence/EventRepositoryAdapterPersistenceTest.java` (`@DataJpaTest`, `@Import(EventRepositoryAdapter.class)`), vérifiant qu'un `Event` sauvegardé est bien retrouvable via `eventJpaRepository.findById(...)`, sur le modèle de `ProposalRepositoryAdapterPersistenceTest`.
+- [x] Lancer `./mvnw test -Dtest=EventRepositoryAdapterPersistenceTest` — confirmer l'échec (probable erreur de schéma si le mapping JPA est incorrect) ou son succès si Track C précédent est déjà correct ; corriger `EventEntity`/l'adaptateur si besoin jusqu'à obtenir le vert.
+- [x] REFACTOR : relire `EventEntity`/`EventJpaRepository`/`EventRepositoryAdapter` et leurs tests, relancer `./mvnw test -Dtest=EventRepositoryAdapterTest,EventRepositoryAdapterPersistenceTest`.
 
 ### Track D — Proposal : application (vérification d'existence de l'événement)
 *(parallel avec Track A, Track B, Track C, Track E, Track F — dépend uniquement des contrats `EventRepository`/`Proposal`/`SubmitProposalCommand` fixés en Phase 0)*
