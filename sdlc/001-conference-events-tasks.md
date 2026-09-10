@@ -2,7 +2,7 @@
 
 Source design: sdlc/001-conference-events-design.md
 
-> Note d'exécution : les tâches de la Phase 0 modifient la signature de `Proposal.submit`/`rehydrate` et de `SubmitProposalCommand`. Cela casse volontairement la compilation de `SubmitProposalService`, `ProposalController` et `ProposalRepositoryAdapter` (et leurs tests) jusqu'à ce que les Tracks D, E et F respectifs les corrigent — chaque track ne touche que ses propres fichiers, donc aucun conflit entre pistes, mais le build reste rouge tant que les trois tracks Proposal (D/E/F) ne sont pas toutes terminées.
+> Note d'exécution (mise à jour après un blocage constaté en Phase 1) : les tâches de la Phase 0 modifient la signature de `Proposal.submit`/`rehydrate` et de `SubmitProposalCommand`, ce qui casse la compilation de `SubmitProposalService`, `ProposalController` et `ProposalRepositoryAdapter` (et leurs tests). **Écart de conception découvert à l'exécution** : Maven compile tout `src/main`/`src/test` en un seul module, donc laisser ce cassage ouvert bloque *toutes* les pistes de la Phase 1 — y compris les pistes A/B/C (`event`), qui ne touchent pourtant aucun fichier `proposal` — puisqu'aucune ne peut lancer le moindre test sans que le module compile. Un agent l'a détecté et s'est arrêté pour signaler le blocage (comportement correct) ; un autre a contourné le problème hors de son périmètre en codant en dur un `eventId` factice dans `ProposalController` (ce changement a été jeté). Correctif appliqué : la correction mécanique minimale des trois sites d'appel (déjà prévue comme première sous-tâche des Tracks D/E/F ci-dessous) a été faite une fois, directement en Phase 0, avant de relancer les pistes — ces sous-tâches sont donc déjà cochées ci-dessous. Les pistes ne dépendent donc plus les unes des autres, et il n'y a aucun conflit de fichiers entre elles.
 
 ## Phase 0 — Foundation
 *(séquentiel — à terminer avant de démarrer la Phase 1)*
@@ -112,9 +112,9 @@ Source design: sdlc/001-conference-events-design.md
 ### Track D — Proposal : application (vérification d'existence de l'événement)
 *(parallel avec Track A, Track B, Track C, Track E, Track F — dépend uniquement des contrats `EventRepository`/`Proposal`/`SubmitProposalCommand` fixés en Phase 0)*
 
-- [ ] Corriger la compilation de `SubmitProposalServiceTest` (`src/test/java/conf/live/cfp/proposal/application/SubmitProposalServiceTest.java`) : ajouter `"event-1"` comme 4ᵉ argument à chaque `new SubmitProposalCommand(...)` et à chaque `Proposal.submit(...)`.
-- [ ] Corriger la compilation de `SubmitProposalService` (`src/main/java/conf/live/cfp/proposal/application/SubmitProposalService.java`) : passer `command.eventId()` à `Proposal.submit(...)`.
-- [ ] Lancer `./mvnw test -Dtest=SubmitProposalServiceTest` — confirmer que la suite compile et passe à nouveau (sans encore de vérification d'existence).
+- [x] Corriger la compilation de `SubmitProposalServiceTest` (`src/test/java/conf/live/cfp/proposal/application/SubmitProposalServiceTest.java`) : ajouter `"event-1"` comme 4ᵉ argument à chaque `new SubmitProposalCommand(...)` et à chaque `Proposal.submit(...)`. *(Fait en Phase 0, voir la note d'exécution en tête de document.)*
+- [x] Corriger la compilation de `SubmitProposalService` (`src/main/java/conf/live/cfp/proposal/application/SubmitProposalService.java`) : passer `command.eventId()` à `Proposal.submit(...)`. *(Fait en Phase 0.)*
+- [x] Lancer `./mvnw test -Dtest=SubmitProposalServiceTest` — confirmer que la suite compile et passe à nouveau (sans encore de vérification d'existence).
 - [ ] RED : ajouter `SubmitProposalServiceTest#should_persist_a_proposal_referencing_an_existing_event`, ajoutant `@Mock EventRepository eventRepository`, construisant `new SubmitProposalService(proposalRepository, eventRepository)`, mockant `eventRepository.findById("event-1")` pour retourner `Optional.of(Event.rehydrate("event-1", "My Conf"))`, et vérifiant que `service.submit(command)` persiste bien la proposition.
 - [ ] Lancer le test — confirmer l'échec pour compilation (constructeur `SubmitProposalService` à un seul argument).
 - [ ] GREEN : ajouter la dépendance `EventRepository` au constructeur de `SubmitProposalService`.
@@ -129,8 +129,8 @@ Source design: sdlc/001-conference-events-design.md
 ### Track E — Proposal : adaptateur web (champ `eventId`)
 *(parallel avec Track A, Track B, Track C, Track D, Track F — dépend uniquement des contrats `SubmitProposalCommand`/`EventNotFoundException` fixés en Phase 0)*
 
-- [ ] Corriger la compilation de `ProposalControllerTest` (`src/test/java/conf/live/cfp/proposal/adapter/in/web/ProposalControllerTest.java`) : ajouter `"event-1"` comme 5ᵉ argument à chaque `Proposal.rehydrate(...)`.
-- [ ] Corriger la compilation de `SubmitProposalRequest`/`ProposalController` a minima pour recompiler (ajouter un champ `eventId` factice non encore validé) — préparer le terrain pour les tests suivants.
+- [x] Corriger la compilation de `ProposalControllerTest` (`src/test/java/conf/live/cfp/proposal/adapter/in/web/ProposalControllerTest.java`) : ajouter `"event-1"` comme 5ᵉ argument à chaque `Proposal.rehydrate(...)`. *(Fait en Phase 0, voir la note d'exécution en tête de document. Le `verify(...)` existant a aussi été mis à jour avec un `eventId` `null`, cohérent avec le corps JSON de test qui n'inclut pas encore ce champ.)*
+- [x] Corriger la compilation de `SubmitProposalRequest`/`ProposalController` a minima pour recompiler (ajouter un champ `eventId` factice non encore validé) — préparer le terrain pour les tests suivants. *(Fait en Phase 0.)*
 - [ ] RED : modifier `ProposalControllerTest#should_return_201_with_the_created_proposal_when_the_request_is_valid` pour inclure `"eventId": "event-1"` dans le corps JSON, ajouter `$.eventId` aux assertions, et vérifier `verify(submitProposalUseCase).submit(eq(new SubmitProposalCommand("Title", "Description", "speaker-1", "event-1")))`.
 - [ ] Lancer `./mvnw test -Dtest=ProposalControllerTest#should_return_201_with_the_created_proposal_when_the_request_is_valid` — confirmer l'échec (le contrôleur ne transmet pas encore `eventId`, ou `ProposalResponse` ne l'expose pas).
 - [ ] GREEN : ajouter le champ `@NotBlank(message = "eventId must not be blank") String eventId` à `SubmitProposalRequest` (`src/main/java/conf/live/cfp/proposal/adapter/in/web/dto/SubmitProposalRequest.java`), passer `request.eventId()` dans la construction du `SubmitProposalCommand` dans `ProposalController`, et ajouter le champ `eventId` à `ProposalResponse` (record + `from(Proposal)`).
@@ -146,18 +146,18 @@ Source design: sdlc/001-conference-events-design.md
 ### Track F — Proposal : adaptateur de persistance (colonne `eventId`)
 *(parallel avec Track A, Track B, Track C, Track D, Track E — dépend uniquement du contrat `Proposal`/`ProposalRepository` fixé en Phase 0)*
 
-- [ ] Corriger la compilation de `ProposalRepositoryAdapterTest` et `ProposalRepositoryAdapterPersistenceTest` : ajouter `"event-1"` comme 4ᵉ argument à chaque `Proposal.submit(...)`.
-- [ ] RED : modifier `ProposalRepositoryAdapterTest#should_map_the_proposal_to_an_entity_and_persist_it` pour ajouter l'assertion `assertThat(persistedEntity.getEventId()).isEqualTo(proposal.eventId())`.
-- [ ] Lancer `./mvnw test -Dtest=ProposalRepositoryAdapterTest#should_map_the_proposal_to_an_entity_and_persist_it` — confirmer l'échec pour compilation (`getEventId()` absent de `ProposalEntity`).
-- [ ] GREEN : ajouter le champ `eventId` (+ getter `getEventId()`) à `ProposalEntity` (`src/main/java/conf/live/cfp/proposal/adapter/out/persistence/ProposalEntity.java`, constructeur complet mis à jour), et propager `proposal.eventId()` dans `ProposalRepositoryAdapter#toEntity`.
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] RED : modifier `ProposalRepositoryAdapterTest#should_map_the_persisted_entity_back_to_a_domain_proposal` pour construire `new ProposalEntity(proposal.id(), proposal.title(), proposal.description(), proposal.speakerId(), proposal.status(), proposal.eventId())` et ajouter `assertThat(result.eventId()).isEqualTo("event-1")`.
-- [ ] Lancer le test — confirmer l'échec pour compilation (nouveau constructeur à 6 arguments).
-- [ ] GREEN : propager `entity.getEventId()` dans `ProposalRepositoryAdapter#toDomain` (appel à `Proposal.rehydrate` avec le 6ᵉ argument).
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] RED : modifier `ProposalRepositoryAdapterPersistenceTest#should_persist_a_proposal_and_make_it_retrievable` pour ajouter l'assertion `assertThat(found.get().getEventId()).isEqualTo("event-1")`.
-- [ ] Lancer `./mvnw test -Dtest=ProposalRepositoryAdapterPersistenceTest` — confirmer qu'il passe (si Track C ci-dessus est correctement fait) ; sinon corriger le mapping.
-- [ ] REFACTOR : relire `ProposalEntity.java`/`ProposalRepositoryAdapter.java` et leurs deux classes de test, relancer `./mvnw test -Dtest=ProposalRepositoryAdapterTest,ProposalRepositoryAdapterPersistenceTest`.
+- [x] Corriger la compilation de `ProposalRepositoryAdapterTest` et `ProposalRepositoryAdapterPersistenceTest` : ajouter `"event-1"` comme 4ᵉ argument à chaque `Proposal.submit(...)`. *(Fait en Phase 0, voir la note d'exécution en tête de document. Le correctif de compilation appliqué en Phase 0 a dû, par construction, ajouter directement le champ `eventId`/`getEventId()` à `ProposalEntity` et sa propagation dans `toEntity`/`toDomain` — il n'existe pas de correctif de compilation plus minimal pour ce fichier. Le reste de cette piste ne fait donc qu'ajouter les assertions de test ci-dessous, déjà vertes.)*
+- [x] RED : modifier `ProposalRepositoryAdapterTest#should_map_the_proposal_to_an_entity_and_persist_it` pour ajouter l'assertion `assertThat(persistedEntity.getEventId()).isEqualTo(proposal.eventId())`.
+- [x] Lancer `./mvnw test -Dtest=ProposalRepositoryAdapterTest#should_map_the_proposal_to_an_entity_and_persist_it` — confirmer l'échec pour compilation (`getEventId()` absent de `ProposalEntity`). *(N/A : `getEventId()` existait déjà suite au correctif de Phase 0 ; l'assertion est passée directement au vert.)*
+- [x] GREEN : ajouter le champ `eventId` (+ getter `getEventId()`) à `ProposalEntity` (`src/main/java/conf/live/cfp/proposal/adapter/out/persistence/ProposalEntity.java`, constructeur complet mis à jour), et propager `proposal.eventId()` dans `ProposalRepositoryAdapter#toEntity`. *(Fait en Phase 0.)*
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] RED : modifier `ProposalRepositoryAdapterTest#should_map_the_persisted_entity_back_to_a_domain_proposal` pour construire `new ProposalEntity(proposal.id(), proposal.title(), proposal.description(), proposal.speakerId(), proposal.status(), proposal.eventId())` et ajouter `assertThat(result.eventId()).isEqualTo("event-1")`.
+- [x] Lancer le test — confirmer l'échec pour compilation (nouveau constructeur à 6 arguments). *(N/A, même raison que ci-dessus.)*
+- [x] GREEN : propager `entity.getEventId()` dans `ProposalRepositoryAdapter#toDomain` (appel à `Proposal.rehydrate` avec le 6ᵉ argument). *(Fait en Phase 0.)*
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] RED : modifier `ProposalRepositoryAdapterPersistenceTest#should_persist_a_proposal_and_make_it_retrievable` pour ajouter l'assertion `assertThat(found.get().getEventId()).isEqualTo("event-1")`.
+- [x] Lancer `./mvnw test -Dtest=ProposalRepositoryAdapterPersistenceTest` — confirmer qu'il passe (si Track C ci-dessus est correctement fait) ; sinon corriger le mapping.
+- [x] REFACTOR : relire `ProposalEntity.java`/`ProposalRepositoryAdapter.java` et leurs deux classes de test, relancer `./mvnw test -Dtest=ProposalRepositoryAdapterTest,ProposalRepositoryAdapterPersistenceTest`.
 
 ## Phase 2 — Integration & verification
 *(séquentiel — après que chaque piste de la Phase 1 est entièrement cochée)*

@@ -37,5 +37,6 @@ class ProposalRepositoryAdapterPersistenceTest {
 		assertThat(found.get().getDescription()).isEqualTo("A deep dive into ports and adapters");
 		assertThat(found.get().getSpeakerId()).isEqualTo("speaker-1");
 		assertThat(found.get().getStatus()).isEqualTo(ProposalStatus.DRAFT);
+		assertThat(found.get().getEventId()).isEqualTo("event-1");
 	}
 }

@@ -35,6 +35,7 @@ class ProposalRepositoryAdapterTest {
 		assertThat(persistedEntity.getDescription()).isEqualTo(proposal.description());
 		assertThat(persistedEntity.getSpeakerId()).isEqualTo(proposal.speakerId());
 		assertThat(persistedEntity.getStatus()).isEqualTo(ProposalStatus.DRAFT);
+		assertThat(persistedEntity.getEventId()).isEqualTo(proposal.eventId());
 	}
 
 	@Test
@@ -51,5 +52,6 @@ class ProposalRepositoryAdapterTest {
 		assertThat(result.description()).isEqualTo("Description");
 		assertThat(result.speakerId()).isEqualTo("speaker-1");
 		assertThat(result.status()).isEqualTo(ProposalStatus.DRAFT);
+		assertThat(result.eventId()).isEqualTo("event-1");
 	}
 }
