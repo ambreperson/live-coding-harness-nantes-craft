@@ -131,17 +131,17 @@ Source design: sdlc/001-conference-events-design.md
 
 - [x] Corriger la compilation de `ProposalControllerTest` (`src/test/java/conf/live/cfp/proposal/adapter/in/web/ProposalControllerTest.java`) : ajouter `"event-1"` comme 5ᵉ argument à chaque `Proposal.rehydrate(...)`. *(Fait en Phase 0, voir la note d'exécution en tête de document. Le `verify(...)` existant a aussi été mis à jour avec un `eventId` `null`, cohérent avec le corps JSON de test qui n'inclut pas encore ce champ.)*
 - [x] Corriger la compilation de `SubmitProposalRequest`/`ProposalController` a minima pour recompiler (ajouter un champ `eventId` factice non encore validé) — préparer le terrain pour les tests suivants. *(Fait en Phase 0.)*
-- [ ] RED : modifier `ProposalControllerTest#should_return_201_with_the_created_proposal_when_the_request_is_valid` pour inclure `"eventId": "event-1"` dans le corps JSON, ajouter `$.eventId` aux assertions, et vérifier `verify(submitProposalUseCase).submit(eq(new SubmitProposalCommand("Title", "Description", "speaker-1", "event-1")))`.
-- [ ] Lancer `./mvnw test -Dtest=ProposalControllerTest#should_return_201_with_the_created_proposal_when_the_request_is_valid` — confirmer l'échec (le contrôleur ne transmet pas encore `eventId`, ou `ProposalResponse` ne l'expose pas).
-- [ ] GREEN : ajouter le champ `@NotBlank(message = "eventId must not be blank") String eventId` à `SubmitProposalRequest` (`src/main/java/conf/live/cfp/proposal/adapter/in/web/dto/SubmitProposalRequest.java`), passer `request.eventId()` dans la construction du `SubmitProposalCommand` dans `ProposalController`, et ajouter le champ `eventId` à `ProposalResponse` (record + `from(Proposal)`).
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] RED : ajouter `ProposalControllerTest#should_return_400_when_the_event_id_is_blank`, postant une requête avec `"eventId": ""` et vérifiant `status().isBadRequest()`.
-- [ ] Lancer le test — confirmer qu'il passe déjà (validation `@NotBlank`) ; sinon corriger l'annotation.
-- [ ] RED : ajouter `ProposalControllerTest#should_return_400_with_the_domain_message_when_the_referenced_event_does_not_exist`, mockant `submitProposalUseCase.submit(any())` pour lever `EventNotFoundException("Event not found: missing-event")`, et vérifiant `status().isBadRequest()` et `$.detail`.
-- [ ] Lancer le test — confirmer l'échec (pas de gestion de `EventNotFoundException` dans `ProposalExceptionHandler` → 500).
-- [ ] GREEN : ajouter un `@ExceptionHandler(EventNotFoundException.class)` dans `ProposalExceptionHandler` (`src/main/java/conf/live/cfp/proposal/adapter/in/web/ProposalExceptionHandler.java`), mappant vers `ProblemDetail` 400.
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] REFACTOR : relire `SubmitProposalRequest`/`ProposalResponse`/`ProposalController`/`ProposalExceptionHandler` et `ProposalControllerTest.java`, relancer `./mvnw test -Dtest=ProposalControllerTest`.
+- [x] RED : modifier `ProposalControllerTest#should_return_201_with_the_created_proposal_when_the_request_is_valid` pour inclure `"eventId": "event-1"` dans le corps JSON, ajouter `$.eventId` aux assertions, et vérifier `verify(submitProposalUseCase).submit(eq(new SubmitProposalCommand("Title", "Description", "speaker-1", "event-1")))`.
+- [x] Lancer `./mvnw test -Dtest=ProposalControllerTest#should_return_201_with_the_created_proposal_when_the_request_is_valid` — confirmer l'échec (le contrôleur ne transmet pas encore `eventId`, ou `ProposalResponse` ne l'expose pas).
+- [x] GREEN : ajouter le champ `@NotBlank(message = "eventId must not be blank") String eventId` à `SubmitProposalRequest` (`src/main/java/conf/live/cfp/proposal/adapter/in/web/dto/SubmitProposalRequest.java`), passer `request.eventId()` dans la construction du `SubmitProposalCommand` dans `ProposalController`, et ajouter le champ `eventId` à `ProposalResponse` (record + `from(Proposal)`).
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] RED : ajouter `ProposalControllerTest#should_return_400_when_the_event_id_is_blank`, postant une requête avec `"eventId": ""` et vérifiant `status().isBadRequest()`.
+- [x] Lancer le test — confirmer qu'il passe déjà (validation `@NotBlank`) ; sinon corriger l'annotation.
+- [x] RED : ajouter `ProposalControllerTest#should_return_400_with_the_domain_message_when_the_referenced_event_does_not_exist`, mockant `submitProposalUseCase.submit(any())` pour lever `EventNotFoundException("Event not found: missing-event")`, et vérifiant `status().isBadRequest()` et `$.detail`.
+- [x] Lancer le test — confirmer l'échec (pas de gestion de `EventNotFoundException` dans `ProposalExceptionHandler` → 500).
+- [x] GREEN : ajouter un `@ExceptionHandler(EventNotFoundException.class)` dans `ProposalExceptionHandler` (`src/main/java/conf/live/cfp/proposal/adapter/in/web/ProposalExceptionHandler.java`), mappant vers `ProblemDetail` 400.
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] REFACTOR : relire `SubmitProposalRequest`/`ProposalResponse`/`ProposalController`/`ProposalExceptionHandler` et `ProposalControllerTest.java`, relancer `./mvnw test -Dtest=ProposalControllerTest`. *(Un import qualifié complet a été nettoyé au passage, et le test existant `should_return_400_with_the_domain_message_when_the_use_case_rejects_the_proposal` a dû recevoir un `eventId` non-vide dans son corps JSON pour continuer à atteindre le mock une fois la validation `@NotBlank` ajoutée.)*
 
 ### Track F — Proposal : adaptateur de persistance (colonne `eventId`)
 *(parallel avec Track A, Track B, Track C, Track D, Track E — dépend uniquement du contrat `Proposal`/`ProposalRepository` fixé en Phase 0)*
