@@ -17,12 +17,17 @@ The project ships with the Maven Wrapper (`./mvnw`), so a local Maven install is
 ./mvnw spring-boot:run
 ```
 
-The API starts on the default Spring Boot port (8080). Example request, once running:
+The API starts on the default Spring Boot port (8080). A proposal must reference an existing event, so create one first:
 
 ```bash
+curl -X POST http://localhost:8080/api/events \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Nantes Craft"}'
+# -> note the returned "id", e.g. "event-id"
+
 curl -X POST http://localhost:8080/api/proposals \
   -H "Content-Type: application/json" \
-  -d '{"title": "Hexagonal architecture in practice", "description": "A deep dive into ports and adapters", "speakerId": "speaker-1"}'
+  -d '{"title": "Hexagonal architecture in practice", "description": "A deep dive into ports and adapters", "speakerId": "speaker-1", "eventId": "event-id"}'
 ```
 
 ## Building and testing

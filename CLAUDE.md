@@ -22,13 +22,13 @@ The app uses an in-memory H2 database (no external DB setup needed to run or tes
 
 ## Architecture
 
-Hexagonal (ports & adapters), one package per bounded-context domain under `conf.live.cfp.<domain>` (`domain/model`, `domain/port/in|out`, `application`, `adapter/in/web`, `adapter/out/persistence`). Only `proposal` exists so far (single use case: submit a proposal); more domains (e.g. speaker, review) will follow the same structure. Full layering, dependency-direction rules and rationale: [ARCHITECTURE.md](ARCHITECTURE.md).
+Hexagonal (ports & adapters), one package per bounded-context domain under `conf.live.cfp.<domain>` (`domain/model`, `domain/port/in|out`, `application`, `adapter/in/web`, `adapter/out/persistence`). Two domains exist so far: `event` (create/list events) and `proposal` (submit a proposal, which requires a valid `eventId`); more domains (e.g. speaker, review) will follow the same structure. Full layering, dependency-direction rules and rationale: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 Rules that most affect how you write code here:
 - `domain/model` and `domain/port` must stay free of Spring/JPA/web annotations.
-- Domain invariants are enforced in aggregate factory methods (e.g. `Proposal.submit(...)`), which throw a domain exception (e.g. `InvalidProposalException`); a separate `rehydrate(...)` factory reconstructs an aggregate from persistence without re-validating.
-- `application` services depend only on `domain/port/out` interfaces, never on adapter classes.
-- A `@RestControllerAdvice(assignableTypes = ...)` scoped to the controller maps domain exceptions to HTTP `ProblemDetail` responses — don't add a global exception handler.
+- Domain invariants are enforced in aggregate factory methods (e.g. `Proposal.submit(...)`, `Event.create(...)`), which throw a domain exception (e.g. `InvalidProposalException`, `InvalidEventException`); a separate `rehydrate(...)` factory reconstructs an aggregate from persistence without re-validating.
+- `application` services depend only on `domain/port/out` interfaces, never on adapter classes. The one cross-domain exception: `SubmitProposalService` depends directly on `event`'s `EventRepository` (`port/out`) to check the referenced event exists, throwing `event`'s `EventNotFoundException` if not — see [ARCHITECTURE.md](ARCHITECTURE.md) for the rationale.
+- A `@RestControllerAdvice(assignableTypes = ...)` scoped to the controller maps domain exceptions to HTTP `ProblemDetail` responses — don't add a global exception handler. `ProposalExceptionHandler` maps both `InvalidProposalException` and `event`'s `EventNotFoundException` to `400`.
 
 ## Testing
 

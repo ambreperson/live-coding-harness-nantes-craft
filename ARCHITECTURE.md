@@ -19,7 +19,7 @@ conf.live.cfp.<domain>/
     └── out/persistence/        # JPA entities, Spring Data repositories, adapter implementing the out port
 ```
 
-Only the `proposal` domain exists today, with a single use case (submitting a new proposal). Further domains (e.g. `speaker`, `review`) will be added as sibling packages under `conf.live.cfp`, each with the same internal shape.
+Two domains exist today: `proposal` (submitting a new proposal) and `event` (creating and listing conference events). Further domains (e.g. `speaker`, `review`) will be added as sibling packages under `conf.live.cfp`, each with the same internal shape.
 
 ## Dependency direction
 
@@ -39,19 +39,36 @@ The rule that must always hold: **dependencies point inward, toward the domain.*
 
 This means the domain can be unit-tested with zero Spring context, and any adapter (e.g. swapping JPA for another persistence technology, or adding a second `in` adapter such as a CLI or a message consumer) can be replaced without touching business logic.
 
-## Current state: the `proposal` domain
+The one carve-out in this repo today: `proposal`'s `SubmitProposalService` depends directly on `event`'s `EventRepository` (`port/out`) and reuses `EventNotFoundException` (`event`'s `domain/model`) to validate that the referenced event exists — see below.
 
-The only domain implemented so far is `proposal`, with one use case: **submit a new proposal**.
+## Current state
+
+### The `event` domain
+
+One use case pair: **create an event** and **list all events**.
+
+- **`domain/model/Event`** — the aggregate root. Immutable, identified by a generated UUID, holding just a `name`. `Event.create(name)` enforces the name isn't blank (`InvalidEventException` otherwise); `Event.rehydrate(...)` reconstructs from persistence without re-validating.
+- **`domain/model/EventNotFoundException`** — raised when an event id doesn't match any existing event. Deliberately exposed as part of `event`'s domain model, because it's also thrown/handled from the `proposal` domain (see below).
+- **`domain/port/in/CreateEventUseCase`** + **`CreateEventCommand`**, **`domain/port/in/ListEventsUseCase`** — the two use case contracts.
+- **`domain/port/out/EventRepository`** — the persistence contract (`save`, `findById`, `findAll`).
+- **`application/CreateEventService`**, **`application/ListEventsService`** — thin implementations delegating to `EventRepository`.
+- **`adapter/in/web/EventController`** — exposes `POST /api/events` (`201 Created`) and `GET /api/events`.
+- **`adapter/in/web/EventExceptionHandler`** — maps `InvalidEventException` to a `400` `ProblemDetail`.
+- **`adapter/out/persistence/EventEntity`** + **`EventJpaRepository`** + **`EventRepositoryAdapter`** — the JPA-backed implementation of `EventRepository`.
+
+### The `proposal` domain
+
+One use case: **submit a new proposal**, which now requires a valid `eventId`.
 
 - **`domain/model/Proposal`** — the aggregate root. Immutable, identified by a generated UUID. Two factory methods:
-  - `Proposal.submit(title, description, speakerId)` — enforces invariants (none of the three fields may be blank) and throws `InvalidProposalException` on violation. Produces a proposal in `DRAFT` status.
+  - `Proposal.submit(title, description, speakerId, eventId)` — enforces invariants (none of the four fields may be blank) and throws `InvalidProposalException` on violation. Produces a proposal in `DRAFT` status.
   - `Proposal.rehydrate(...)` — reconstructs an aggregate from persisted data, without re-validating (invariants were already checked at submission time).
 - **`domain/model/ProposalStatus`** — currently only `DRAFT`; more statuses (`SUBMITTED`, `ACCEPTED`, `REJECTED`, ...) will be added alongside the use cases that transition between them.
-- **`domain/port/in/SubmitProposalUseCase`** + **`SubmitProposalCommand`** — the use case contract and its input.
+- **`domain/port/in/SubmitProposalUseCase`** + **`SubmitProposalCommand`** — the use case contract and its input, now carrying `eventId`.
 - **`domain/port/out/ProposalRepository`** — the persistence contract the domain needs (`save`).
-- **`application/SubmitProposalService`** — implements the use case: builds a `Proposal` via the domain factory, then delegates persistence to the `ProposalRepository` port.
-- **`adapter/in/web/ProposalController`** — exposes `POST /api/proposals`, mapping `SubmitProposalRequest` (validated with Bean Validation) to a `SubmitProposalCommand`, and the resulting `Proposal` to a `ProposalResponse`, returning `201 Created` with a `Location` header.
-- **`adapter/in/web/ProposalExceptionHandler`** — a `@RestControllerAdvice(assignableTypes = ProposalController.class)` that maps `InvalidProposalException` to a `400` `ProblemDetail`. Scoping the advice to the controller keeps HTTP concerns local to this domain's web adapter rather than global.
+- **`application/SubmitProposalService`** — implements the use case: first checks the referenced event exists via `event`'s `EventRepository.findById(...)`, throwing `EventNotFoundException` if not, then builds a `Proposal` via the domain factory and delegates persistence to the `ProposalRepository` port.
+- **`adapter/in/web/ProposalController`** — exposes `POST /api/proposals`, mapping `SubmitProposalRequest` (validated with Bean Validation, including a mandatory `eventId`) to a `SubmitProposalCommand`, and the resulting `Proposal` to a `ProposalResponse`, returning `201 Created` with a `Location` header.
+- **`adapter/in/web/ProposalExceptionHandler`** — a `@RestControllerAdvice(assignableTypes = ProposalController.class)` that maps `InvalidProposalException` and `EventNotFoundException` (both to `400` `ProblemDetail`). Scoping the advice to the controller keeps HTTP concerns local to this domain's web adapter rather than global.
 - **`adapter/out/persistence/ProposalEntity`** + **`ProposalJpaRepository`** + **`ProposalRepositoryAdapter`** — the JPA-backed implementation of `ProposalRepository`. `ProposalRepositoryAdapter` is the only place that translates between `Proposal` and `ProposalEntity`.
 
 ## Design rationale
@@ -59,6 +76,6 @@ The only domain implemented so far is `proposal`, with one use case: **submit a 
 - **Domain purity as a rule, not a suggestion**: keeping `domain/model` and `domain/port` free of framework annotations means the aggregate's invariants can be tested with plain JUnit + AssertJ, with no Spring context startup cost, and means the business rules cannot silently start depending on infrastructure behavior (e.g. lazy-loading, transaction boundaries).
 - **Validation lives in the aggregate factory, not the controller**: Bean Validation (`@Valid` on `SubmitProposalRequest`) only guards the HTTP boundary (e.g. rejecting genuinely malformed JSON payloads early, with a generic `400`); the actual business invariants are enforced once, in `Proposal.submit(...)`, so any future `in` adapter (a CLI, an event consumer) gets the same guarantees for free.
 - **`rehydrate` vs `submit`**: separating aggregate reconstruction from creation avoids re-running validation logic (and its exceptions) every time an aggregate is read back from storage — validation is a one-time gate at the business operation that created the data.
-- **One package per domain**: this keeps future domains (e.g. `speaker`, `review`) independent and prevents a shared "god package"; a domain can only reach into another domain's internals through its `port/in` (use cases) and never through its `model` or `adapter` packages.
+- **One package per domain**: this keeps domains (e.g. `event`, `proposal`, and future ones like `speaker`, `review`) independent and prevents a shared "god package". The intent is that a domain only reaches into another domain's internals through its `port/in` (use cases); `proposal` depending directly on `event`'s `EventRepository` (`port/out`) and `EventNotFoundException` (`domain/model`) to check a reference exists is the current exception to that intent — a lighter-weight seam than adding a dedicated `event` use case for a simple existence check.
 
 See [CLAUDE.md](CLAUDE.md) for the condensed, day-to-day version of these rules and the exact test commands.

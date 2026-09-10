@@ -162,13 +162,15 @@ Source design: sdlc/001-conference-events-design.md
 ## Phase 2 — Integration & verification
 *(séquentiel — après que chaque piste de la Phase 1 est entièrement cochée)*
 
-- [ ] Lancer la suite complète : `./mvnw test`.
-- [ ] Lancer spécifiquement les règles d'architecture : `./mvnw test -Dtest=HexagonalArchitectureTest` (le nouveau domaine `event` doit respecter les mêmes règles de dépendance que `proposal`).
-- [ ] Lancer `./mvnw clean verify` pour un build complet.
-- [ ] Démarrer l'application (`./mvnw spring-boot:run`) et vérifier manuellement le parcours de bout en bout :
-  - `POST /api/events` avec `{"name": "Nantes Craft"}` → `201`, note l'`id` retourné.
-  - `GET /api/events` → `200`, la liste contient l'événement créé.
-  - `POST /api/proposals` avec `{"title": "...", "description": "...", "speakerId": "...", "eventId": "<id de l'événement créé>"}` → `201`, la proposition retournée référence bien cet `eventId`.
-  - `POST /api/proposals` avec un `eventId` inexistant (ex. `"does-not-exist"`) → `400` avec un message d'erreur explicite.
-  - `POST /api/proposals` avec `eventId` absent/vide → `400`.
-- [ ] Mettre à jour `ARCHITECTURE.md`/`README.md`/`CLAUDE.md` si besoin pour mentionner le nouveau domaine `event` (via l'agent `documenter`), puisque `CLAUDE.md` indique actuellement que seul `proposal` existe.
+- [x] Lancer la suite complète : `./mvnw test`. *(59 tests, 0 échec.)*
+- [x] Lancer spécifiquement les règles d'architecture : `./mvnw test -Dtest=HexagonalArchitectureTest` (le nouveau domaine `event` doit respecter les mêmes règles de dépendance que `proposal`). *(7 tests, 0 échec — déjà couvert par le run complet ci-dessus.)*
+- [x] Lancer `./mvnw clean verify` pour un build complet. *(BUILD SUCCESS.)*
+- [x] Démarrer l'application (`./mvnw spring-boot:run`) et vérifier manuellement le parcours de bout en bout :
+  - `POST /api/events` avec `{"name": "Nantes Craft"}` → `201` ✅ (`id` retourné : `35912cb2-...`).
+  - `GET /api/events` → `200` ✅, la liste contient l'événement créé.
+  - `POST /api/proposals` avec `eventId` valide → `201` ✅, la proposition retournée référence bien cet `eventId`.
+  - `POST /api/proposals` avec un `eventId` inexistant (`"does-not-exist"`) → `400` ✅ (`"Event not found: does-not-exist"`).
+  - `POST /api/proposals` avec `eventId` vide → `400` ✅.
+- [x] Mettre à jour `ARCHITECTURE.md`/`README.md`/`CLAUDE.md` si besoin pour mentionner le nouveau domaine `event` (via l'agent `documenter`), puisque `CLAUDE.md` indique actuellement que seul `proposal` existe. *(Fait — voir aussi le point d'attention ArchUnit signalé ci-dessous.)*
+
+> **Point d'attention signalé par l'agent `documenter` (hors périmètre de cette feature, à traiter séparément)** : la règle ArchUnit `domains_must_not_reach_into_other_domains_internals` de `HexagonalArchitectureTest` ne détecte en réalité aucune violation — vérifié expérimentalement à la fois sur la dépendance croisée `proposal` → `event` introduite ici, et sur une violation volontaire injectée puis retirée. Il semble s'agir d'un bug de polarité dans le `ArchCondition` personnalisé (`noClasses().should(...)`), préexistant à cette feature. La documentation présente pourtant cette règle comme détectant activement les fuites inter-domaines dès qu'un second domaine existe — ce qui est désormais le cas. À corriger dans un travail dédié.
