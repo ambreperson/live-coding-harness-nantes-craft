@@ -25,13 +25,13 @@ Source design: sdlc/001-conference-events-design.md
 - [x] REFACTOR : relire `Event.java` et `EventTest.java`, vérifier la cohérence de nommage avec `Proposal`/`ProposalTest`, relancer `./mvnw test -Dtest=EventTest`.
 
 ### Exception de référence manquante (partagée par les Tracks D et E)
-- [ ] Créer `EventNotFoundException` dans `src/main/java/conf/live/cfp/event/domain/model/EventNotFoundException.java` (extends `RuntimeException`, message du type `"Event not found: " + eventId`) — action mécanique, pas de test dédié (comme `InvalidProposalException`, elle est couverte par les tests des couches qui l'utilisent, ajoutés dans les Tracks D et E).
+- [x] Créer `EventNotFoundException` dans `src/main/java/conf/live/cfp/event/domain/model/EventNotFoundException.java` (extends `RuntimeException`, message du type `"Event not found: " + eventId`) — action mécanique, pas de test dédié (comme `InvalidProposalException`, elle est couverte par les tests des couches qui l'utilisent, ajoutés dans les Tracks D et E).
 
 ### Ports `event` (mécanique, pas de comportement à tester ici)
-- [ ] Créer `CreateEventCommand` (record `String name`) dans `src/main/java/conf/live/cfp/event/domain/port/in/CreateEventCommand.java`.
-- [ ] Créer `CreateEventUseCase` (méthode `Event create(CreateEventCommand command)`) dans `src/main/java/conf/live/cfp/event/domain/port/in/CreateEventUseCase.java`.
-- [ ] Créer `ListEventsUseCase` (méthode `List<Event> listAll()`) dans `src/main/java/conf/live/cfp/event/domain/port/in/ListEventsUseCase.java`.
-- [ ] Créer `EventRepository` (méthodes `Event save(Event event)`, `Optional<Event> findById(String id)`, `List<Event> findAll()`) dans `src/main/java/conf/live/cfp/event/domain/port/out/EventRepository.java`.
+- [x] Créer `CreateEventCommand` (record `String name`) dans `src/main/java/conf/live/cfp/event/domain/port/in/CreateEventCommand.java`.
+- [x] Créer `CreateEventUseCase` (méthode `Event create(CreateEventCommand command)`) dans `src/main/java/conf/live/cfp/event/domain/port/in/CreateEventUseCase.java`.
+- [x] Créer `ListEventsUseCase` (méthode `List<Event> listAll()`) dans `src/main/java/conf/live/cfp/event/domain/port/in/ListEventsUseCase.java`.
+- [x] Créer `EventRepository` (méthodes `Event save(Event event)`, `Optional<Event> findById(String id)`, `List<Event> findAll()`) dans `src/main/java/conf/live/cfp/event/domain/port/out/EventRepository.java`.
 
 ### Extension de l'agrégat `Proposal` (champ `eventId` obligatoire)
 - [ ] RED : modifier `ProposalTest#should_create_a_draft_proposal_with_the_given_data` (`src/test/java/conf/live/cfp/proposal/domain/model/ProposalTest.java`) pour appeler `Proposal.submit("Hexagonal architecture in practice", "A deep dive into ports and adapters", "speaker-1", "event-1")` et ajouter l'assertion `assertThat(proposal.eventId()).isEqualTo("event-1")`.
