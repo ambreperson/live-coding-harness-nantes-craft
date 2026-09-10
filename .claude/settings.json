@@ -1,7 +1,22 @@
 {
   "permissions": {
     "deny": [
-      "Read(./live-coding.md)"
+      "Read(./live-coding.md)",
+      "Edit(./live-coding.md)",
+      "Write(./live-coding.md)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r \".tool_input.command // \\\"\\\"\" | { read -r cmd; case \"$cmd\" in *live-coding.md*) echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PreToolUse\\\",\\\"permissionDecision\\\":\\\"deny\\\",\\\"permissionDecisionReason\\\":\\\"Les interactions Bash avec live-coding.md sont bloquées\\\"}}\";; esac; }"
+          }
+        ]
+      }
     ]
   }
 }
