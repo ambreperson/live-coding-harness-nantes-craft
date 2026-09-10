@@ -9,9 +9,9 @@
 ```
 create a call for paper (CFP) API that will manage proposals lifecycle for speaker to submit in a conference
 
-first only add the proposal creation, we will build the other features from here
+first only add the proposal creation in the proposal domain, we will build the other features from here and there will be other domains
 
-use java and Spring Boot to implement the API and use port-adapter architecture and SOLID patterns
+use java and Spring Boot to implement the API and use haxagonal port-adapter architecture and SOLID patterns
 
 all the implementation has to be done through a test driven development loop
 
@@ -28,16 +28,22 @@ the current repository has been initialized with spring initializr to accelerate
 add a hook that executes the test suite when a session begins and add a confirmation message into the conversation via systemMessage with the test results in a very short way (like X/X test passed)
 ```
 
-## Create a firts agent
+## Create a first agent
 ```
 create a `documenter agent responsible for maintaining ARCHITECTURE.md, README.md and CLAUDE.md with the useful information to understand how to use / contribute to this project and how and why it is built
+do not try to update the documentation right after creating the agent, it needs to be reloaded into context
+```
+```
+@documenter init the documentation 
 ```
 
 ## Install a skill : the skill-creator
 ```
 ! npx skills add https://github.com/anthropics/skills --skill skill-creator --agent claude-code
 ```
-
+```
+/reload-skills
+```
 ## Use the skill creator to represent best practices
 ### TDD
 ```
@@ -51,7 +57,7 @@ create a skill that explicits the red green refactor tdd loop and best practices
 
 ## Add deterministic tests to ensure architecture layout
 ```
-create an ArchUnit test suite corresponding to the architecture described by the hexagonal architecture skill and update the skill to refer to it
+in a dedicated subagent create an ArchUnit test suite corresponding to the architecture described by the hexagonal architecture skill and update the skill to refer to it
 ```
 
 ## Introduce Software Delivery LifeCycle workflow
@@ -96,7 +102,7 @@ this skill will use the task list in `sdlc/XXX-my-feature-tasks.md` and implemen
 
 each time a task is finished, the implement skill should check the box corresponding to the implemented task
 
-define a skill local `implementer` agent related that will be used to implement the tasks as a sub agent and use git worktrees with a worktree name representing what the agent does when parallelizing, use 
+define a skill-local `implementer` agent related that will be used to implement the tasks as a sub agent and use git worktrees with a worktree name representing what the agent does when parallelizing
 ```
 
 ### Document the workflow
@@ -110,6 +116,9 @@ commit this
 ```
 
 ## Implement a new feature with the SDLC skills
+```
+/clear
+``` 
 ### Specify the Event feature
 ```
 /sdlc-specs at the moment, proposals are not tied to a specific conference event, introduce the concept of event, to begin we just need to be able to create / list events and link proposals to an event in a simple way
@@ -130,12 +139,12 @@ commit this
 /sdlc-implement 001
 ```
 
-### Ease the code review
+### Ease the code review (bonus)
 ```
 /code-review low level review of the Event feature using the diff with main branch
 ```
 
-### Ease the Event feature documentation
+### Ease the Event feature documentation (bonus)
 ```
 @documenter update the documentation according to the Event feature
 ```
