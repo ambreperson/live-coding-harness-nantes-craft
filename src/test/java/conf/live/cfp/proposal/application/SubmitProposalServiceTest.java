@@ -1,5 +1,8 @@
 package conf.live.cfp.proposal.application;
 
+import conf.live.cfp.event.domain.model.Event;
+import conf.live.cfp.event.domain.model.EventNotFoundException;
+import conf.live.cfp.event.domain.port.out.EventRepository;
 import conf.live.cfp.proposal.domain.model.Proposal;
 import conf.live.cfp.proposal.domain.model.ProposalStatus;
 import conf.live.cfp.proposal.domain.port.in.SubmitProposalCommand;
@@ -10,7 +13,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -21,10 +27,14 @@ class SubmitProposalServiceTest {
 	@Mock
 	private ProposalRepository proposalRepository;
 
+	@Mock
+	private EventRepository eventRepository;
+
 	@Test
 	void should_submit_a_draft_proposal_built_from_the_command_and_persist_it() {
-		SubmitProposalService service = new SubmitProposalService(proposalRepository);
+		SubmitProposalService service = new SubmitProposalService(proposalRepository, eventRepository);
 		SubmitProposalCommand command = new SubmitProposalCommand("Title", "Description", "speaker-1", "event-1");
+		when(eventRepository.findById("event-1")).thenReturn(Optional.of(Event.rehydrate("event-1", "My Conf")));
 		when(proposalRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
 		Proposal submitted = service.submit(command);
@@ -41,13 +51,35 @@ class SubmitProposalServiceTest {
 
 	@Test
 	void should_return_the_proposal_persisted_by_the_repository() {
-		SubmitProposalService service = new SubmitProposalService(proposalRepository);
+		SubmitProposalService service = new SubmitProposalService(proposalRepository, eventRepository);
 		SubmitProposalCommand command = new SubmitProposalCommand("Title", "Description", "speaker-1", "event-1");
 		Proposal persisted = Proposal.submit("Title", "Description", "speaker-1", "event-1");
+		when(eventRepository.findById("event-1")).thenReturn(Optional.of(Event.rehydrate("event-1", "My Conf")));
 		when(proposalRepository.save(any())).thenReturn(persisted);
 
 		Proposal result = service.submit(command);
 
 		assertThat(result).isEqualTo(persisted);
+	}
+
+	@Test
+	void should_persist_a_proposal_referencing_an_existing_event() {
+		SubmitProposalService service = new SubmitProposalService(proposalRepository, eventRepository);
+		SubmitProposalCommand command = new SubmitProposalCommand("Title", "Description", "speaker-1", "event-1");
+		when(eventRepository.findById("event-1")).thenReturn(Optional.of(Event.rehydrate("event-1", "My Conf")));
+		when(proposalRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+		Proposal submitted = service.submit(command);
+
+		verify(proposalRepository).save(submitted);
+	}
+
+	@Test
+	void should_reject_the_submission_when_the_referenced_event_does_not_exist() {
+		SubmitProposalService service = new SubmitProposalService(proposalRepository, eventRepository);
+		when(eventRepository.findById("missing-event")).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> service.submit(new SubmitProposalCommand("Title", "Description", "speaker-1", "missing-event")))
+				.isInstanceOf(EventNotFoundException.class);
 	}
 }
