@@ -22,7 +22,7 @@ class ProposalRepositoryAdapterTest {
 	@Test
 	void should_map_the_proposal_to_an_entity_and_persist_it() {
 		ProposalRepositoryAdapter adapter = new ProposalRepositoryAdapter(proposalJpaRepository);
-		Proposal proposal = Proposal.submit("Title", "Description", "speaker-1");
+		Proposal proposal = Proposal.submit("Title", "Description", "speaker-1", "event-1");
 		when(proposalJpaRepository.save(any(ProposalEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
 		adapter.save(proposal);
@@ -40,8 +40,8 @@ class ProposalRepositoryAdapterTest {
 	@Test
 	void should_map_the_persisted_entity_back_to_a_domain_proposal() {
 		ProposalRepositoryAdapter adapter = new ProposalRepositoryAdapter(proposalJpaRepository);
-		Proposal proposal = Proposal.submit("Title", "Description", "speaker-1");
-		ProposalEntity savedEntity = new ProposalEntity(proposal.id(), proposal.title(), proposal.description(), proposal.speakerId(), proposal.status());
+		Proposal proposal = Proposal.submit("Title", "Description", "speaker-1", "event-1");
+		ProposalEntity savedEntity = new ProposalEntity(proposal.id(), proposal.title(), proposal.description(), proposal.speakerId(), proposal.status(), proposal.eventId());
 		when(proposalJpaRepository.save(any(ProposalEntity.class))).thenReturn(savedEntity);
 
 		Proposal result = adapter.save(proposal);

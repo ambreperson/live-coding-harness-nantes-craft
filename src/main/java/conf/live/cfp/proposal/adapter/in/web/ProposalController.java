@@ -29,7 +29,7 @@ public class ProposalController {
 
 	@PostMapping
 	public ResponseEntity<ProposalResponse> submit(@Valid @RequestBody SubmitProposalRequest request) {
-		Proposal proposal = submitProposalUseCase.submit(new SubmitProposalCommand(request.title(), request.description(), request.speakerId()));
+		Proposal proposal = submitProposalUseCase.submit(new SubmitProposalCommand(request.title(), request.description(), request.speakerId(), request.eventId()));
 		return ResponseEntity.created(URI.create("/api/proposals/" + proposal.id()))
 				.body(ProposalResponse.from(proposal));
 	}

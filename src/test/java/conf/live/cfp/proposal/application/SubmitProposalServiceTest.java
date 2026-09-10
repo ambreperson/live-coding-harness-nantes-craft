@@ -24,7 +24,7 @@ class SubmitProposalServiceTest {
 	@Test
 	void should_submit_a_draft_proposal_built_from_the_command_and_persist_it() {
 		SubmitProposalService service = new SubmitProposalService(proposalRepository);
-		SubmitProposalCommand command = new SubmitProposalCommand("Title", "Description", "speaker-1");
+		SubmitProposalCommand command = new SubmitProposalCommand("Title", "Description", "speaker-1", "event-1");
 		when(proposalRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
 		Proposal submitted = service.submit(command);
@@ -42,8 +42,8 @@ class SubmitProposalServiceTest {
 	@Test
 	void should_return_the_proposal_persisted_by_the_repository() {
 		SubmitProposalService service = new SubmitProposalService(proposalRepository);
-		SubmitProposalCommand command = new SubmitProposalCommand("Title", "Description", "speaker-1");
-		Proposal persisted = Proposal.submit("Title", "Description", "speaker-1");
+		SubmitProposalCommand command = new SubmitProposalCommand("Title", "Description", "speaker-1", "event-1");
+		Proposal persisted = Proposal.submit("Title", "Description", "speaker-1", "event-1");
 		when(proposalRepository.save(any())).thenReturn(persisted);
 
 		Proposal result = service.submit(command);

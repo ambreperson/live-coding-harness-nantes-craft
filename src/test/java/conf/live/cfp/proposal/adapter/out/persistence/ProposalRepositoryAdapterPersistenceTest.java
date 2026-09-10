@@ -27,7 +27,7 @@ class ProposalRepositoryAdapterPersistenceTest {
 
 	@Test
 	void should_persist_a_proposal_and_make_it_retrievable() {
-		Proposal proposal = Proposal.submit("Hexagonal architecture in practice", "A deep dive into ports and adapters", "speaker-1");
+		Proposal proposal = Proposal.submit("Hexagonal architecture in practice", "A deep dive into ports and adapters", "speaker-1", "event-1");
 
 		proposalRepositoryAdapter.save(proposal);
 

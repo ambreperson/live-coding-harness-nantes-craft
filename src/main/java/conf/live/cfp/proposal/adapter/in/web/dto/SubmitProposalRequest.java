@@ -8,5 +8,6 @@ import jakarta.validation.constraints.NotBlank;
 public record SubmitProposalRequest(
 		@NotBlank(message = "title must not be blank") String title,
 		@NotBlank(message = "description must not be blank") String description,
-		@NotBlank(message = "speakerId must not be blank") String speakerId) {
+		@NotBlank(message = "speakerId must not be blank") String speakerId,
+		String eventId) {
 }

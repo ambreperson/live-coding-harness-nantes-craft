@@ -27,16 +27,19 @@ public class ProposalEntity {
 	@Enumerated(EnumType.STRING)
 	private ProposalStatus status;
 
+	private String eventId;
+
 	protected ProposalEntity() {
 		// required by JPA
 	}
 
-	public ProposalEntity(String id, String title, String description, String speakerId, ProposalStatus status) {
+	public ProposalEntity(String id, String title, String description, String speakerId, ProposalStatus status, String eventId) {
 		this.id = id;
 		this.title = title;
 		this.description = description;
 		this.speakerId = speakerId;
 		this.status = status;
+		this.eventId = eventId;
 	}
 
 	public String getId() {
@@ -57,5 +60,9 @@ public class ProposalEntity {
 
 	public ProposalStatus getStatus() {
 		return status;
+	}
+
+	public String getEventId() {
+		return eventId;
 	}
 }

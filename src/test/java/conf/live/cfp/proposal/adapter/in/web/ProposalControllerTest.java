@@ -30,7 +30,7 @@ class ProposalControllerTest {
 
 	@Test
 	void should_return_201_with_the_created_proposal_when_the_request_is_valid() throws Exception {
-		Proposal created = Proposal.rehydrate("proposal-1", "Title", "Description", "speaker-1", conf.live.cfp.proposal.domain.model.ProposalStatus.DRAFT);
+		Proposal created = Proposal.rehydrate("proposal-1", "Title", "Description", "speaker-1", conf.live.cfp.proposal.domain.model.ProposalStatus.DRAFT, "event-1");
 		when(submitProposalUseCase.submit(any())).thenReturn(created);
 
 		mockMvc.perform(post("/api/proposals")
@@ -50,7 +50,7 @@ class ProposalControllerTest {
 				.andExpect(jsonPath("$.speakerId").value("speaker-1"))
 				.andExpect(jsonPath("$.status").value("DRAFT"));
 
-		verify(submitProposalUseCase).submit(eq(new SubmitProposalCommand("Title", "Description", "speaker-1")));
+		verify(submitProposalUseCase).submit(eq(new SubmitProposalCommand("Title", "Description", "speaker-1", null)));
 	}
 
 	@Test

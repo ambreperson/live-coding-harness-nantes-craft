@@ -22,7 +22,7 @@ public class SubmitProposalService implements SubmitProposalUseCase {
 
 	@Override
 	public Proposal submit(SubmitProposalCommand command) {
-		Proposal proposal = Proposal.submit(command.title(), command.description(), command.speakerId());
+		Proposal proposal = Proposal.submit(command.title(), command.description(), command.speakerId(), command.eventId());
 		return proposalRepository.save(proposal);
 	}
 }

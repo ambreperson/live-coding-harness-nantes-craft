@@ -25,10 +25,10 @@ public class ProposalRepositoryAdapter implements ProposalRepository {
 	}
 
 	private static ProposalEntity toEntity(Proposal proposal) {
-		return new ProposalEntity(proposal.id(), proposal.title(), proposal.description(), proposal.speakerId(), proposal.status());
+		return new ProposalEntity(proposal.id(), proposal.title(), proposal.description(), proposal.speakerId(), proposal.status(), proposal.eventId());
 	}
 
 	private static Proposal toDomain(ProposalEntity entity) {
-		return Proposal.rehydrate(entity.getId(), entity.getTitle(), entity.getDescription(), entity.getSpeakerId(), entity.getStatus());
+		return Proposal.rehydrate(entity.getId(), entity.getTitle(), entity.getDescription(), entity.getSpeakerId(), entity.getStatus(), entity.getEventId());
 	}
 }
