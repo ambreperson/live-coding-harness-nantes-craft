@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Claude Code ###
+# Git worktrees created by the sdlc-implement skill for parallel task tracks
+.claude/worktrees/
