@@ -1,6 +1,6 @@
 package conf.live.cfp.proposal.adapter.in.web;
 
-import conf.live.cfp.event.domain.model.EventNotFoundException;
+import conf.live.cfp.proposal.domain.model.EventNotFoundException;
 import conf.live.cfp.proposal.domain.model.InvalidProposalException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;

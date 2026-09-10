@@ -91,7 +91,13 @@ class HexagonalArchitectureTest {
                                     "%s depends on %s, reaching into the '%s' domain's model or adapter package "
                                             + "instead of only its port.in",
                                     javaClass.getName(), targetClass.getName(), targetDomain);
-                            events.add(SimpleConditionEvent.violated(javaClass, message));
+                            // This condition is wrapped by noClasses(), which negates each event's polarity
+                            // (ArchCondition#never()) before evaluating the rule. So the bad case we detect
+                            // here must be reported as "satisfied" (matches the condition's description),
+                            // not "violated" - .violated() here would get flipped to "satisfied" by the
+                            // negation and the rule would never fail, which is exactly the bug this comment
+                            // is guarding against.
+                            events.add(SimpleConditionEvent.satisfied(javaClass, message));
                         }
                     }
                 }

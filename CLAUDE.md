@@ -27,8 +27,8 @@ Hexagonal (ports & adapters), one package per bounded-context domain under `conf
 Rules that most affect how you write code here:
 - `domain/model` and `domain/port` must stay free of Spring/JPA/web annotations.
 - Domain invariants are enforced in aggregate factory methods (e.g. `Proposal.submit(...)`, `Event.create(...)`), which throw a domain exception (e.g. `InvalidProposalException`, `InvalidEventException`); a separate `rehydrate(...)` factory reconstructs an aggregate from persistence without re-validating.
-- `application` services depend only on `domain/port/out` interfaces, never on adapter classes. The one cross-domain exception: `SubmitProposalService` depends directly on `event`'s `EventRepository` (`port/out`) to check the referenced event exists, throwing `event`'s `EventNotFoundException` if not — see [ARCHITECTURE.md](ARCHITECTURE.md) for the rationale.
-- A `@RestControllerAdvice(assignableTypes = ...)` scoped to the controller maps domain exceptions to HTTP `ProblemDetail` responses — don't add a global exception handler. `ProposalExceptionHandler` maps both `InvalidProposalException` and `event`'s `EventNotFoundException` to `400`.
+- `application` services depend only on `domain/port/out` interfaces, never on adapter classes. A domain never depends on another domain's `port/out`, `domain/model` or `adapter` packages either — only its `port/in` (`domains_must_not_reach_into_other_domains_internals` in `HexagonalArchitectureTest` enforces this). `SubmitProposalService` checks a referenced event exists via `event`'s `CheckEventExistsUseCase.exists(...)` (`port/in`, a plain `boolean`), never via `event`'s `EventRepository` or `Event`.
+- A `@RestControllerAdvice(assignableTypes = ...)` scoped to the controller maps domain exceptions to HTTP `ProblemDetail` responses — don't add a global exception handler. `ProposalExceptionHandler` maps both `InvalidProposalException` and `proposal`'s own `EventNotFoundException` (a distinct class from `event`'s) to `400`.
 
 ## Testing
 
