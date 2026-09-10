@@ -1,6 +1,7 @@
 package conf.live.cfp.event.adapter.in.web;
 
 import conf.live.cfp.event.domain.model.Event;
+import conf.live.cfp.event.domain.model.InvalidEventException;
 import conf.live.cfp.event.domain.port.in.CreateEventUseCase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,5 +53,20 @@ class EventControllerTest {
 								}
 								"""))
 				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void should_return_400_with_the_domain_message_when_the_use_case_rejects_the_event() throws Exception {
+		when(createEventUseCase.create(any())).thenThrow(new InvalidEventException("Event name must not be blank"));
+
+		mockMvc.perform(post("/api/events")
+						.contentType("application/json")
+						.content("""
+								{
+								  "name": "My Conf"
+								}
+								"""))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.detail").value("Event name must not be blank"));
 	}
 }
