@@ -1,5 +1,6 @@
 package conf.live.cfp.proposal.adapter.in.web;
 
+import conf.live.cfp.event.domain.model.EventNotFoundException;
 import conf.live.cfp.proposal.domain.model.InvalidProposalException;
 import conf.live.cfp.proposal.domain.model.Proposal;
 import conf.live.cfp.proposal.domain.port.in.SubmitProposalCommand;
@@ -70,6 +71,21 @@ class ProposalControllerTest {
 	}
 
 	@Test
+	void should_return_400_when_the_event_id_is_blank() throws Exception {
+		mockMvc.perform(post("/api/proposals")
+						.contentType("application/json")
+						.content("""
+								{
+								  "title": "Title",
+								  "description": "Description",
+								  "speakerId": "speaker-1",
+								  "eventId": ""
+								}
+								"""))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
 	void should_return_400_with_the_domain_message_when_the_use_case_rejects_the_proposal() throws Exception {
 		when(submitProposalUseCase.submit(any())).thenThrow(new InvalidProposalException("Proposal speaker id must not be blank"));
 
@@ -79,10 +95,29 @@ class ProposalControllerTest {
 								{
 								  "title": "Title",
 								  "description": "Description",
-								  "speakerId": "speaker-1"
+								  "speakerId": "speaker-1",
+								  "eventId": "event-1"
 								}
 								"""))
 				.andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.detail").value("Proposal speaker id must not be blank"));
+	}
+
+	@Test
+	void should_return_400_with_the_domain_message_when_the_referenced_event_does_not_exist() throws Exception {
+		when(submitProposalUseCase.submit(any())).thenThrow(new EventNotFoundException("Event not found: missing-event"));
+
+		mockMvc.perform(post("/api/proposals")
+						.contentType("application/json")
+						.content("""
+								{
+								  "title": "Title",
+								  "description": "Description",
+								  "speakerId": "speaker-1",
+								  "eventId": "missing-event"
+								}
+								"""))
+				.andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.detail").value("Event not found: missing-event"));
 	}
 }
