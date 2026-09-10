@@ -115,16 +115,16 @@ Source design: sdlc/001-conference-events-design.md
 - [x] Corriger la compilation de `SubmitProposalServiceTest` (`src/test/java/conf/live/cfp/proposal/application/SubmitProposalServiceTest.java`) : ajouter `"event-1"` comme 4ᵉ argument à chaque `new SubmitProposalCommand(...)` et à chaque `Proposal.submit(...)`. *(Fait en Phase 0, voir la note d'exécution en tête de document.)*
 - [x] Corriger la compilation de `SubmitProposalService` (`src/main/java/conf/live/cfp/proposal/application/SubmitProposalService.java`) : passer `command.eventId()` à `Proposal.submit(...)`. *(Fait en Phase 0.)*
 - [x] Lancer `./mvnw test -Dtest=SubmitProposalServiceTest` — confirmer que la suite compile et passe à nouveau (sans encore de vérification d'existence).
-- [ ] RED : ajouter `SubmitProposalServiceTest#should_persist_a_proposal_referencing_an_existing_event`, ajoutant `@Mock EventRepository eventRepository`, construisant `new SubmitProposalService(proposalRepository, eventRepository)`, mockant `eventRepository.findById("event-1")` pour retourner `Optional.of(Event.rehydrate("event-1", "My Conf"))`, et vérifiant que `service.submit(command)` persiste bien la proposition.
-- [ ] Lancer le test — confirmer l'échec pour compilation (constructeur `SubmitProposalService` à un seul argument).
-- [ ] GREEN : ajouter la dépendance `EventRepository` au constructeur de `SubmitProposalService`.
-- [ ] Mettre à jour tous les autres `new SubmitProposalService(proposalRepository)` dans `SubmitProposalServiceTest.java` pour passer aussi `eventRepository`, et mocker `eventRepository.findById(...)` pour retourner un événement existant dans chacun de ces tests.
-- [ ] Relancer `./mvnw test -Dtest=SubmitProposalServiceTest` — confirmer que tous les tests passent.
-- [ ] RED : ajouter `SubmitProposalServiceTest#should_reject_the_submission_when_the_referenced_event_does_not_exist`, mockant `eventRepository.findById("missing-event")` pour retourner `Optional.empty()`, et vérifiant que `service.submit(new SubmitProposalCommand("Title", "Description", "speaker-1", "missing-event"))` lève `EventNotFoundException`.
-- [ ] Lancer le test — confirmer l'échec (aucune vérification d'existence dans `SubmitProposalService`).
-- [ ] GREEN : dans `SubmitProposalService.submit`, avant de construire le `Proposal`, appeler `eventRepository.findById(command.eventId()).orElseThrow(() -> new EventNotFoundException("Event not found: " + command.eventId()))`.
-- [ ] Relancer le test — confirmer qu'il passe.
-- [ ] REFACTOR : relire `SubmitProposalService.java` et `SubmitProposalServiceTest.java`, relancer `./mvnw test -Dtest=SubmitProposalServiceTest`.
+- [x] RED : ajouter `SubmitProposalServiceTest#should_persist_a_proposal_referencing_an_existing_event`, ajoutant `@Mock EventRepository eventRepository`, construisant `new SubmitProposalService(proposalRepository, eventRepository)`, mockant `eventRepository.findById("event-1")` pour retourner `Optional.of(Event.rehydrate("event-1", "My Conf"))`, et vérifiant que `service.submit(command)` persiste bien la proposition.
+- [x] Lancer le test — confirmer l'échec pour compilation (constructeur `SubmitProposalService` à un seul argument).
+- [x] GREEN : ajouter la dépendance `EventRepository` au constructeur de `SubmitProposalService`. *(Note : cette étape GREEN a inclus en un seul edit à la fois l'injection `EventRepository` et la logique `orElseThrow`, ce qui a fait passer directement au vert le test RED suivant sans jamais l'observer rouge — écart mineur signalé par l'agent, sans impact sur le résultat ni la couverture finale.)*
+- [x] Mettre à jour tous les autres `new SubmitProposalService(proposalRepository)` dans `SubmitProposalServiceTest.java` pour passer aussi `eventRepository`, et mocker `eventRepository.findById(...)` pour retourner un événement existant dans chacun de ces tests.
+- [x] Relancer `./mvnw test -Dtest=SubmitProposalServiceTest` — confirmer que tous les tests passent.
+- [x] RED : ajouter `SubmitProposalServiceTest#should_reject_the_submission_when_the_referenced_event_does_not_exist`, mockant `eventRepository.findById("missing-event")` pour retourner `Optional.empty()`, et vérifiant que `service.submit(new SubmitProposalCommand("Title", "Description", "speaker-1", "missing-event"))` lève `EventNotFoundException`.
+- [x] Lancer le test — confirmer l'échec (aucune vérification d'existence dans `SubmitProposalService`). *(Non observé rouge, voir la note ci-dessus.)*
+- [x] GREEN : dans `SubmitProposalService.submit`, avant de construire le `Proposal`, appeler `eventRepository.findById(command.eventId()).orElseThrow(() -> new EventNotFoundException("Event not found: " + command.eventId()))`.
+- [x] Relancer le test — confirmer qu'il passe.
+- [x] REFACTOR : relire `SubmitProposalService.java` et `SubmitProposalServiceTest.java`, relancer `./mvnw test -Dtest=SubmitProposalServiceTest`.
 
 ### Track E — Proposal : adaptateur web (champ `eventId`)
 *(parallel avec Track A, Track B, Track C, Track D, Track F — dépend uniquement des contrats `SubmitProposalCommand`/`EventNotFoundException` fixés en Phase 0)*
