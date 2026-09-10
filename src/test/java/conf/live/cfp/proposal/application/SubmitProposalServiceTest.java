@@ -1,6 +1,7 @@
 package conf.live.cfp.proposal.application;
 
 import conf.live.cfp.event.domain.model.Event;
+import conf.live.cfp.event.domain.model.EventNotFoundException;
 import conf.live.cfp.event.domain.port.out.EventRepository;
 import conf.live.cfp.proposal.domain.model.Proposal;
 import conf.live.cfp.proposal.domain.model.ProposalStatus;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,5 +72,14 @@ class SubmitProposalServiceTest {
 		Proposal submitted = service.submit(command);
 
 		verify(proposalRepository).save(submitted);
+	}
+
+	@Test
+	void should_reject_the_submission_when_the_referenced_event_does_not_exist() {
+		SubmitProposalService service = new SubmitProposalService(proposalRepository, eventRepository);
+		when(eventRepository.findById("missing-event")).thenReturn(Optional.empty());
+
+		assertThatThrownBy(() -> service.submit(new SubmitProposalCommand("Title", "Description", "speaker-1", "missing-event")))
+				.isInstanceOf(EventNotFoundException.class);
 	}
 }
