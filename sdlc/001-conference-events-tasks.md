@@ -34,19 +34,19 @@ Source design: sdlc/001-conference-events-design.md
 - [x] Créer `EventRepository` (méthodes `Event save(Event event)`, `Optional<Event> findById(String id)`, `List<Event> findAll()`) dans `src/main/java/conf/live/cfp/event/domain/port/out/EventRepository.java`.
 
 ### Extension de l'agrégat `Proposal` (champ `eventId` obligatoire)
-- [ ] RED : modifier `ProposalTest#should_create_a_draft_proposal_with_the_given_data` (`src/test/java/conf/live/cfp/proposal/domain/model/ProposalTest.java`) pour appeler `Proposal.submit("Hexagonal architecture in practice", "A deep dive into ports and adapters", "speaker-1", "event-1")` et ajouter l'assertion `assertThat(proposal.eventId()).isEqualTo("event-1")`.
-- [ ] Lancer `./mvnw test -Dtest=ProposalTest` — confirmer l'échec pour compilation (signature `submit` à 3 arguments, méthode `eventId()` absente).
-- [ ] GREEN : dans `Proposal.java`, ajouter le champ `eventId`, l'accesseur `eventId()`, et le paramètre `eventId` à `submit(title, description, speakerId, eventId)` avec validation `requireNonBlank(eventId, "Proposal event id must not be blank")`.
-- [ ] Mettre à jour tous les autres appels à `Proposal.submit(...)` dans `ProposalTest.java` (`should_assign_a_unique_id_to_each_submitted_proposal`, `should_reject_a_blank_title`, `should_reject_a_blank_description`, `should_reject_a_blank_speaker_id`) pour passer un 4ᵉ argument `"event-1"`.
-- [ ] Relancer `./mvnw test -Dtest=ProposalTest` — confirmer que ces tests passent à nouveau.
-- [ ] RED : ajouter `ProposalTest#should_reject_a_blank_event_id` en `@ParameterizedTest` (`@NullAndEmptySource`, `@ValueSource(strings = {" ", "\t"})`), vérifiant que `Proposal.submit("Title", "Description", "speaker-1", blankEventId)` lève `InvalidProposalException` avec le message `"Proposal event id must not be blank"`.
-- [ ] Lancer le test — confirmer qu'il passe déjà grâce à la validation ajoutée ; sinon corriger l'ordre de validation dans `Proposal.submit`.
-- [ ] RED : modifier `ProposalTest#should_rehydrate_a_proposal_without_re_validating_it` pour appeler `Proposal.rehydrate("proposal-1", "Title", "Description", "speaker-1", ProposalStatus.DRAFT, "event-1")` et ajouter `assertThat(proposal.eventId()).isEqualTo("event-1")`.
-- [ ] Lancer le test — confirmer l'échec pour compilation (signature `rehydrate` à 5 arguments).
-- [ ] GREEN : ajouter le paramètre `eventId` à `Proposal.rehydrate(...)`.
-- [ ] Relancer `./mvnw test -Dtest=ProposalTest` — confirmer que tous les tests de la classe passent.
-- [ ] Modifier `SubmitProposalCommand` (`src/main/java/conf/live/cfp/proposal/domain/port/in/SubmitProposalCommand.java`) pour ajouter le champ `eventId` : `record SubmitProposalCommand(String title, String description, String speakerId, String eventId)`.
-- [ ] REFACTOR : relire `Proposal.java` (ordre des champs/validations) et `ProposalTest.java`, relancer `./mvnw test -Dtest=ProposalTest`.
+- [x] RED : modifier `ProposalTest#should_create_a_draft_proposal_with_the_given_data` (`src/test/java/conf/live/cfp/proposal/domain/model/ProposalTest.java`) pour appeler `Proposal.submit("Hexagonal architecture in practice", "A deep dive into ports and adapters", "speaker-1", "event-1")` et ajouter l'assertion `assertThat(proposal.eventId()).isEqualTo("event-1")`.
+- [x] Lancer `./mvnw test -Dtest=ProposalTest` — confirmer l'échec pour compilation (signature `submit` à 3 arguments, méthode `eventId()` absente).
+- [x] GREEN : dans `Proposal.java`, ajouter le champ `eventId`, l'accesseur `eventId()`, et le paramètre `eventId` à `submit(title, description, speakerId, eventId)` avec validation `requireNonBlank(eventId, "Proposal event id must not be blank")`.
+- [x] Mettre à jour tous les autres appels à `Proposal.submit(...)` dans `ProposalTest.java` (`should_assign_a_unique_id_to_each_submitted_proposal`, `should_reject_a_blank_title`, `should_reject_a_blank_description`, `should_reject_a_blank_speaker_id`) pour passer un 4ᵉ argument `"event-1"`.
+- [x] Relancer `./mvnw test -Dtest=ProposalTest` — confirmer que ces tests passent à nouveau.
+- [x] RED : ajouter `ProposalTest#should_reject_a_blank_event_id` en `@ParameterizedTest` (`@NullAndEmptySource`, `@ValueSource(strings = {" ", "\t"})`), vérifiant que `Proposal.submit("Title", "Description", "speaker-1", blankEventId)` lève `InvalidProposalException` avec le message `"Proposal event id must not be blank"`.
+- [x] Lancer le test — confirmer qu'il passe déjà grâce à la validation ajoutée ; sinon corriger l'ordre de validation dans `Proposal.submit`.
+- [x] RED : modifier `ProposalTest#should_rehydrate_a_proposal_without_re_validating_it` pour appeler `Proposal.rehydrate("proposal-1", "Title", "Description", "speaker-1", ProposalStatus.DRAFT, "event-1")` et ajouter `assertThat(proposal.eventId()).isEqualTo("event-1")`.
+- [x] Lancer le test — confirmer l'échec pour compilation (signature `rehydrate` à 5 arguments). *(Note : réalisé dans la même passe GREEN que `submit` ci-dessus, `rehydrate` ayant été mis à jour en même temps.)*
+- [x] GREEN : ajouter le paramètre `eventId` à `Proposal.rehydrate(...)`.
+- [x] Relancer `./mvnw test -Dtest=ProposalTest` — confirmer que tous les tests de la classe passent.
+- [x] Modifier `SubmitProposalCommand` (`src/main/java/conf/live/cfp/proposal/domain/port/in/SubmitProposalCommand.java`) pour ajouter le champ `eventId` : `record SubmitProposalCommand(String title, String description, String speakerId, String eventId)`.
+- [x] REFACTOR : relire `Proposal.java` (ordre des champs/validations) et `ProposalTest.java`, relancer `./mvnw test -Dtest=ProposalTest`.
 
 *(À l'issue de cette phase, `SubmitProposalService`, `ProposalController`, `ProposalRepositoryAdapter` et leurs tests ne compilent plus — c'est attendu, voir la note en tête de document. Chaque Track de la Phase 1 corrige son propre fichier.)*
 

@@ -17,34 +17,37 @@ public final class Proposal {
 	private final String description;
 	private final String speakerId;
 	private final ProposalStatus status;
+	private final String eventId;
 
-	private Proposal(String id, String title, String description, String speakerId, ProposalStatus status) {
+	private Proposal(String id, String title, String description, String speakerId, ProposalStatus status, String eventId) {
 		this.id = id;
 		this.title = title;
 		this.description = description;
 		this.speakerId = speakerId;
 		this.status = status;
+		this.eventId = eventId;
 	}
 
 	/**
 	 * Submits a new proposal as a draft.
 	 *
-	 * @throws InvalidProposalException if the title, description or speaker id is blank
+	 * @throws InvalidProposalException if the title, description, speaker id or event id is blank
 	 */
-	public static Proposal submit(String title, String description, String speakerId) {
+	public static Proposal submit(String title, String description, String speakerId, String eventId) {
 		requireNonBlank(title, "Proposal title must not be blank");
 		requireNonBlank(description, "Proposal description must not be blank");
 		requireNonBlank(speakerId, "Proposal speaker id must not be blank");
+		requireNonBlank(eventId, "Proposal event id must not be blank");
 
-		return new Proposal(UUID.randomUUID().toString(), title, description, speakerId, ProposalStatus.DRAFT);
+		return new Proposal(UUID.randomUUID().toString(), title, description, speakerId, ProposalStatus.DRAFT, eventId);
 	}
 
 	/**
 	 * Rehydrates an existing proposal, typically from persistence. No validation is performed:
 	 * the invariants were already enforced when the proposal was first submitted.
 	 */
-	public static Proposal rehydrate(String id, String title, String description, String speakerId, ProposalStatus status) {
-		return new Proposal(id, title, description, speakerId, status);
+	public static Proposal rehydrate(String id, String title, String description, String speakerId, ProposalStatus status, String eventId) {
+		return new Proposal(id, title, description, speakerId, status, eventId);
 	}
 
 	private static void requireNonBlank(String value, String message) {
@@ -71,6 +74,10 @@ public final class Proposal {
 
 	public ProposalStatus status() {
 		return status;
+	}
+
+	public String eventId() {
+		return eventId;
 	}
 
 	@Override
